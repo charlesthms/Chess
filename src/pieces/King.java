@@ -28,22 +28,18 @@ public class King extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
-
-        // 1.) generer tous les coups possibles
-        // 2.) pour chaque coup, faire le coup
-        // 3.) générer tous les coups des opposants
-        // 4.) pour chaque coup de chaque opposant, verifier s'il attaque la case
-        // 5.) si la case est attaquée, le coup n'est pas légal
+        // TODO: gérer les coups légaux pour le roi adverse
+        int initial_x = xp;
+        int initial_y = yp;
 
         ArrayList<Move> legalMoves = new ArrayList<>();
-        ArrayList<Move> allMoves = board.getAllMoves();
 
+        // 1.) générer tous les coups possibles
         for (int i = yp - 1; i <= yp + 1; i++) {
             for (int j = xp - 1; j <= xp + 1; j++) {
-                // TODO: Prendre en compte les coups qui mettraient en position d'échec pour les exclures
-                if (!isIn(allMoves, new Move(j, i, false)) && board.isCaseEmpty(j, i)) legalMoves.add(new Move(j, i, false));
+                if (board.isCaseEmpty(j, i)) legalMoves.add(new Move(j, i, false));
                 else {
-                    if (board.getPiece(j, i) != null && board.getPiece(j, i).isWhite == !isWhite) {
+                    if (board.getPiece(j, i).isWhite == !isWhite) {
                         legalMoves.add(new Move(j, i, true));
                         break;
                     }
@@ -51,21 +47,26 @@ public class King extends Piece {
             }
         }
 
-        return ImmutableList.copyOf(legalMoves);
-    }
+        // 2.) pour chaque coup, faire le coup
+        ArrayList<Move> copy = (ArrayList<Move>) legalMoves.clone();
+        for (Move m : legalMoves) {
+            xp = m.getXp();
+            yp = m.getYp();
+            // 3.) générer tous les coups des opposants
+            ArrayList<Move> allMoves = board.getAllMoves();
 
-    /**
-     * Teste si le mouvement m se trouve dans les moves
-     *
-     * @param moves Tous les mouvements légaux des pièces adverses
-     * @param m Mouvement à tester
-     * @return vrai si m est dans moves
-     */
-    private boolean isIn(Collection<Move> moves, Move m){
-        for (Move move : moves) {
-            if (move.getX() == m.getX() && move.getY() == m.getY()) return true;
+            // 4.) pour chaque coup de chaque opposant, verifier s'il attaque la case
+            for (Move om : allMoves) {
+                if (om.getXp() == xp && om.getYp() == yp) {
+                    // 5.) si la case est attaquée, le coup n'est pas légal
+                    copy.remove(m);
+                }
+            }
         }
-        return false;
+        xp = initial_x;
+        yp = initial_y;
+
+        return copy;
     }
 
     @Override

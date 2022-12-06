@@ -133,9 +133,7 @@ public class Board {
         ArrayList<Move> res = new ArrayList<>();
 
         for (Piece p : getPieces()) {
-            if (p instanceof Queen && p.isWhite() == !selected.isWhite()) {
-                res.addAll(((Queen) p).getIllegalMoves());
-            } else if (!(p instanceof King) && p.isWhite() == !selected.isWhite()) {
+            if (!(p instanceof King) && p.isWhite() == !selected.isWhite()) {
                 res.addAll(p.getLegalMoves());
             }
         }
