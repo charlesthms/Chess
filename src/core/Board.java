@@ -101,6 +101,9 @@ public class Board {
             int alignedY = y - (y % Game.TILES_SIZE);
 
             if (piece.isLegalMove(alignedX, alignedY)) {
+                Piece p = getPiece(x / Game.TILES_SIZE, y / Game.TILES_SIZE);
+                if (p != null && p != selected) getPieces().remove(p);
+
                 piece.updatePosition(alignedX, alignedY);
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
@@ -133,7 +136,10 @@ public class Board {
         ArrayList<Move> res = new ArrayList<>();
 
         for (Piece p : getPieces()) {
-            if (!(p instanceof King) && p.isWhite() == !selected.isWhite()) {
+            if (p instanceof King k && p.isWhite() == !selected.isWhite()) {
+                res.addAll(k.generateAllMoves());
+            }
+            else if (p.isWhite() == !selected.isWhite()){
                 res.addAll(p.getLegalMoves());
             }
         }
@@ -169,11 +175,6 @@ public class Board {
     }
 
     public void mouseReleased(MouseEvent e) {
-        Piece p = getPiece(e.getX() / Game.TILES_SIZE, e.getY() / Game.TILES_SIZE);
-        if (p != null && p != selected) {
-            getPieces().remove(p);
-        }
-
         placePiece(e.getX(), e.getY(), selected);
         selected = null;
         hoverEffect = null;

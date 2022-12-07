@@ -1,6 +1,5 @@
 package pieces;
 
-import com.google.common.collect.ImmutableList;
 import core.Board;
 import core.Move;
 import gui.Game;
@@ -28,24 +27,11 @@ public class King extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
-        // TODO: gérer les coups légaux pour le roi adverse
         int initial_x = xp;
         int initial_y = yp;
 
-        ArrayList<Move> legalMoves = new ArrayList<>();
-
         // 1.) générer tous les coups possibles
-        for (int i = yp - 1; i <= yp + 1; i++) {
-            for (int j = xp - 1; j <= xp + 1; j++) {
-                if (board.isCaseEmpty(j, i)) legalMoves.add(new Move(j, i, false));
-                else {
-                    if (board.getPiece(j, i).isWhite == !isWhite) {
-                        legalMoves.add(new Move(j, i, true));
-                        break;
-                    }
-                }
-            }
-        }
+        ArrayList<Move> legalMoves = new ArrayList<>(generatePseudoLegalMoves());
 
         // 2.) pour chaque coup, faire le coup
         ArrayList<Move> copy = (ArrayList<Move>) legalMoves.clone();
@@ -67,6 +53,48 @@ public class King extends Piece {
         yp = initial_y;
 
         return copy;
+    }
+
+    /**
+     * Génère la liste des mouvements pseudo-légaux (cf: incluant les positions en échec)
+     *
+     * @return La liste des mouvements pseudo-légaux
+     */
+    private Collection<Move> generatePseudoLegalMoves() {
+
+        ArrayList<Move> legalMoves = new ArrayList<>();
+
+        for (int i = yp - 1; i <= yp + 1; i++) {
+            for (int j = xp - 1; j <= xp + 1; j++) {
+                if (board.isCaseEmpty(j, i)) legalMoves.add(new Move(j, i, false));
+                else {
+                    if (board.getPiece(j, i).isWhite == !isWhite) {
+                        legalMoves.add(new Move(j, i, true));
+                        break;
+                    }
+                }
+            }
+        }
+        return legalMoves;
+    }
+
+
+    /**
+     * Génère la liste de tous les mouvements possibles sans aucune condition
+     *
+     * @return Liste
+     */
+    public Collection<Move> generateAllMoves() {
+
+        ArrayList<Move> legalMoves = new ArrayList<>();
+
+        for (int i = yp - 1; i <= yp + 1; i++) {
+            for (int j = xp - 1; j <= xp + 1; j++) {
+                legalMoves.add(new Move(j, i, false));
+            }
+        }
+
+        return legalMoves;
     }
 
     @Override
