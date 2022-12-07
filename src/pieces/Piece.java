@@ -2,6 +2,7 @@ package pieces;
 
 import core.Board;
 import core.Move;
+import core.Player;
 import gui.Game;
 
 import java.awt.*;
@@ -14,8 +15,11 @@ public abstract class Piece {
     protected int xp, yp;
     protected int x, y;
     protected boolean isWhite;
+    protected boolean didMove;
     protected BufferedImage image;
     protected Board board;
+    protected Player player;
+    protected Move forcedMove;
 
     /**
      * Classe héritée par toutes les pièces
@@ -30,6 +34,8 @@ public abstract class Piece {
         this.x = xp * Game.TILES_SIZE;
         this.y = yp * Game.TILES_SIZE;
         this.board = board;
+
+        this.didMove = false;
 
         board.getPieces().add(this);
         setIsWhite();
@@ -51,7 +57,13 @@ public abstract class Piece {
     protected abstract void loadImage();
 
     protected void setIsWhite() {
-        isWhite = y > 2;
+        if (y > 2) {
+            isWhite = true;
+            player = board.getwPlayer();
+        } else {
+            isWhite = false;
+            player = board.getbPlayer();
+        }
     }
 
     /**
@@ -78,6 +90,10 @@ public abstract class Piece {
         this.y = y;
     }
 
+    public void forceMove(Move m) {
+        forcedMove = m;
+    }
+
     public int getX() {
         return x;
     }
@@ -100,5 +116,13 @@ public abstract class Piece {
 
     public boolean isWhite() {
         return isWhite;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setDidMove(boolean didMove) {
+        this.didMove = didMove;
     }
 }

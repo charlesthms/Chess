@@ -1,5 +1,6 @@
 package core;
 
+import com.google.common.collect.ImmutableList;
 import pieces.*;
 import gui.Game;
 
@@ -7,6 +8,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 
 public class Board {
@@ -15,17 +17,25 @@ public class Board {
     private Piece selected = null;
     private Point2D hoverEffect = null;
 
+    private Player wPlayer;
+    private Player bPlayer;
+
+    private int i = 0;
+    private Player currentPlayer;
+
     public Board() {
+        bPlayer = new Player(this, false, null, 1);
+        wPlayer = new Player(this, true, null, 0);
+        bPlayer.setKing(new King(4, 0, this));
+        wPlayer.setKing(new King(4, 7, this));
+
+        currentPlayer = wPlayer;
         initPieces();
     }
 
     private void initPieces() {
-
         new Queen(3, 0, this);
         new Queen(3, 7, this);
-
-        new King(4, 0, this);
-        new King(4, 7, this);
 
         new Knight(1, 0, this);
         new Knight(6, 0, this);
@@ -95,7 +105,7 @@ public class Board {
      * @param y Coordonnée y en px
      * @param piece Piece concernée
      */
-    private void placePiece(int x, int y, Piece piece) {
+    private void makeMove(int x, int y, Piece piece) {
         if (selected != null) {
             int alignedX = x - (x % Game.TILES_SIZE);
             int alignedY = y - (y % Game.TILES_SIZE);
@@ -104,11 +114,31 @@ public class Board {
                 Piece p = getPiece(x / Game.TILES_SIZE, y / Game.TILES_SIZE);
                 if (p != null && p != selected) getPieces().remove(p);
 
+                // Si la piece selected est un roi -> verifier si le castle est possible
+                if (piece instanceof King k) {
+                    System.out.println("Castling possible: " + k.isCastlingPossible());
+
+                    for (CastleMove cm : k.getCastlingMoves()) {
+                        if (cm.getMove().getX() == alignedX && cm.getMove().getY() == alignedY) {
+                            cm.getRook().updatePosition(alignedX - Game.TILES_SIZE, alignedY);
+                        }
+                    }
+
+                }
                 piece.updatePosition(alignedX, alignedY);
+                selected.setDidMove(true);
+                updatePlayerTurn();
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
             }
         }
+    }
+
+    private void updatePlayerTurn() {
+        i = 1 - i;
+
+        if (wPlayer.getTurn() == i) currentPlayer = wPlayer;
+        else currentPlayer = bPlayer;
     }
 
     /**
@@ -132,35 +162,69 @@ public class Board {
         return null;
     }
 
-    public ArrayList<Move> getAllMoves() {
-        ArrayList<Move> res = new ArrayList<>();
-
-        for (Piece p : getPieces()) {
-            if (p instanceof King k && p.isWhite() == !selected.isWhite()) {
-                res.addAll(k.generateAllMoves());
-            }
-            else if (p.isWhite() == !selected.isWhite()){
-                res.addAll(p.getLegalMoves());
-            }
-        }
-
-        return res;
-    }
-
     public void mouseClicked(MouseEvent e) {
 
     }
 
-    public void mousePressed(MouseEvent e) {
+    /**
+     * Permet d'obtenir les pièces authorisées à bouger en cas de mise en échec du roi
+     *
+     * @param pieces Collection de pièces
+     * @param k Roi
+     * @return Liste
+     */
+    private Collection<Piece> getAuthorizedPieces(ArrayList<Piece> pieces, King k) {
+        ArrayList<Piece> legalPieces = new ArrayList<>();
+        for (Piece p : k.attackingPieces()) {
+            for (Piece playerPiece : pieces) {
+                for (Move m : playerPiece.getLegalMoves()) {
+                    if (m.getXp() == p.getXp() && m.getYp() == p.getYp()) {
+                        playerPiece.forceMove(m);
+                        legalPieces.add(playerPiece);
+                    }
+                }
+            }
+        }
+        return ImmutableList.copyOf(legalPieces);
+    }
+
+    private void onMousePressed(Collection<Piece> pieces, int x, int y, boolean reset) {
         for (Piece p : pieces) {
+            if (reset) p.forceMove(null);
             Rectangle hitbox = new Rectangle(p.getX(), p.getY(), Game.TILES_SIZE, Game.TILES_SIZE);
 
-            if (hitbox.contains(e.getX(), e.getY())){
-                selected = p;
-                int alignedX = e.getX() - (e.getX() % Game.TILES_SIZE);
-                int alignedY = e.getY() - (e.getY() % Game.TILES_SIZE);
-                hoverEffect = new Point(alignedX, alignedY);
+            if (hitbox.contains(x, y)){
+                if (p.isWhite() == currentPlayer.isWhite()) {
+                    selected = p;
+                    int alignedX = x - (x % Game.TILES_SIZE);
+                    int alignedY = y - (y % Game.TILES_SIZE);
+                    hoverEffect = new Point(alignedX, alignedY);
+                }
             }
+        }
+    }
+
+    public void mousePressed(MouseEvent e) {
+        // Si le joueur est en échec,
+        // 1.) Trouver la ou les pièces qui l'attaque
+        // 2.) Trouver les pieces alliés qui attaquent la ou les pièces menacentes
+        // 3.) Ajouter ces pièces aux mouvements possibles
+        if (currentPlayer.isInCheck()) {
+            System.out.println("ECHEC");
+            King king = currentPlayer.getKing();
+
+            if (king.getLegalMoves().size() == 0) {
+                System.out.println("ECHEC ET MATTE");
+            }
+
+            ArrayList<Piece> playerPieces = (ArrayList<Piece>) currentPlayer.getPieces();
+            ArrayList<Piece> legalPieces = new ArrayList<>(getAuthorizedPieces(playerPieces, king));
+            legalPieces.add(king);
+
+            onMousePressed(legalPieces, e.getX(), e.getY(), false);
+
+        } else {
+            onMousePressed(pieces, e.getX(), e.getY(), true);
         }
     }
 
@@ -175,7 +239,7 @@ public class Board {
     }
 
     public void mouseReleased(MouseEvent e) {
-        placePiece(e.getX(), e.getY(), selected);
+        makeMove(e.getX(), e.getY(), selected);
         selected = null;
         hoverEffect = null;
     }
@@ -194,5 +258,17 @@ public class Board {
 
     public LinkedList<Piece> getPieces() {
         return pieces;
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public Player getwPlayer() {
+        return wPlayer;
+    }
+
+    public Player getbPlayer() {
+        return bPlayer;
     }
 }

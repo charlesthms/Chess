@@ -13,11 +13,11 @@ import java.util.Collection;
 
 public class Rook extends Piece {
 
-    private Type type;
+    private boolean didMove;
 
     public Rook(int x, int y, Board board) {
         super(x, y, board);
-        type = Type.TOWER;
+        didMove = false;
     }
 
     @Override
@@ -45,6 +45,16 @@ public class Rook extends Piece {
      */
     @Override
     public Collection<Move> getLegalMoves() {
+        if (forcedMove != null) {
+            ArrayList<Move> res = new ArrayList<>();
+            res.add(forcedMove);
+            return res;
+        } else {
+            return legalMoves();
+        }
+    }
+
+    private Collection<Move> legalMoves() {
         ArrayList<Move> legalMoves = new ArrayList<>();
 
         // Axe horizontal - droit
@@ -84,12 +94,19 @@ public class Rook extends Piece {
         return false;
     }
 
-
     @Override
     public boolean isLegalMove(int x, int y) {
         for (Move m : getLegalMoves()) {
             if (m.getX() == x && m.getY() == y) return true;
         }
         return false;
+    }
+
+    public boolean didMove() {
+        return didMove;
+    }
+
+    public void setDidMove(boolean didMove) {
+        this.didMove = didMove;
     }
 }

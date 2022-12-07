@@ -25,6 +25,16 @@ public class Queen extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
+        if (forcedMove != null) {
+            ArrayList<Move> legalMoves = new ArrayList<>();
+            legalMoves.add(forcedMove);
+            return legalMoves;
+        } else {
+            return legalMoves();
+        }
+    }
+
+    private Collection<Move> legalMoves() {
         ArrayList<Move> legalMoves = new ArrayList<>();
 
         // Axe horizontal - droit
@@ -78,34 +88,6 @@ public class Queen extends Piece {
 
         return legalMoves;
     }
-
-    public Collection<Move> getIllegalMoves() {
-        ArrayList<Move> legalMoves = new ArrayList<>();
-
-        // Axe horizontal - droit
-        for (int i = xp + 1; i < 8; i++) processRookMove(legalMoves, i, yp);
-        // Axe horizontal - gauche
-        for (int i = xp - 1; i >= 0; i--) processRookMove(legalMoves, i, yp);
-        // Axe vertical - bas
-        for (int i = yp + 1; i < 8; i++) processRookMove(legalMoves, xp, i);
-        // Axe vertical - haut
-        for (int i = yp - 1; i >= 0; i--) processRookMove(legalMoves, xp, i);
-
-        for (int i = yp - 1; i >= 0; i--)
-            for (int j = xp + 1; j < 8; j++) processBishopMove(legalMoves, i, j);
-
-        for (int i = yp - 1; i >= 0; i--)
-            for (int j = xp - 1; j >= 0; j--) processBishopMove(legalMoves, i, j);
-
-        for (int i = yp + 1; i < 8; i++)
-            for (int j = xp + 1; j < 8; j++) processBishopMove(legalMoves, i, j);
-
-        for (int i = yp + 1; i < 8; i++)
-            for (int j = xp - 1; j >= 0; j--) processBishopMove(legalMoves, i, j);
-
-        return legalMoves;
-    }
-
     private boolean processRookMove(ArrayList<Move> legalMoves, int a, int b) {
         if (board.isCaseEmpty(a, b))
             legalMoves.add(new Move(a, b, false));
@@ -121,11 +103,13 @@ public class Queen extends Piece {
 
     private boolean processBishopMove(Collection<Move> legalMoves, int i, int j) {
         if (Math.abs(i - yp) == Math.abs(j - xp)){
-            if (board.isCaseEmpty(j, i))
+            if (board.isCaseEmpty(j, i)) {
                 legalMoves.add(new Move(j, i, false));
-            else
-            if (board.getPiece(j, i).isWhite == !isWhite) {
-                legalMoves.add(new Move(j, i, true));
+            }
+            else {
+                if (board.getPiece(j, i).isWhite == !isWhite) {
+                    legalMoves.add(new Move(j, i, true));
+                }
                 return true;
             }
         }

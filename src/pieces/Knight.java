@@ -25,6 +25,16 @@ public class Knight extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
+        if (forcedMove != null) {
+            ArrayList<Move> res = new ArrayList<>();
+            res.add(forcedMove);
+            return ImmutableList.copyOf(res);
+        } else {
+            return legalMoves();
+        }
+    }
+
+    private Collection<Move> legalMoves() {
         ArrayList<Move> legalMoves = new ArrayList<>();
         var knightMoves = new int[][] { {1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {-2, -1}, {-2, 1}, {2, -1}, {2, 1} };
 
