@@ -10,6 +10,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static utils.Helpers.generateMoves;
+
 public class Queen extends Piece {
 
     /**
@@ -25,103 +27,10 @@ public class Queen extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
-        if (forcedMove != null) {
-            ArrayList<Move> legalMoves = new ArrayList<>();
-            legalMoves.add(forcedMove);
-            return legalMoves;
-        } else {
-            return legalMoves();
-        }
-    }
-
-    private Collection<Move> legalMoves() {
+        ArrayList<Move> pseudoLegalMoves = new ArrayList<>(generateMoves(this));
         ArrayList<Move> legalMoves = new ArrayList<>();
 
-        // Axe horizontal - droit
-        right:
-        for (int i = xp + 1; i < 8; i++) {
-            if (processRookMove(legalMoves, i, yp)) break right;
-        }
-        // Axe horizontal - gauche
-        left:
-        for (int i = xp - 1; i >= 0; i--) {
-            if (processRookMove(legalMoves, i, yp)) break left;
-        }
-        // Axe vertical - bas
-        bottom:
-        for (int i = yp + 1; i < 8; i++) {
-            if (processRookMove(legalMoves, xp, i)) break bottom;
-        }
-        // Axe vertical - haut
-        top:
-        for (int i = yp - 1; i >= 0; i--) {
-            if (processRookMove(legalMoves, xp, i)) break top;
-        }
-
-        topRight:
-        for (int i = yp - 1; i >= 0; i--) {
-            for (int j = xp + 1; j < 8; j++) {
-                if (processBishopMove(legalMoves, i, j)) break topRight;
-            }
-        }
-
-        topLeft:
-        for (int i = yp - 1; i >= 0; i--) {
-            for (int j = xp - 1; j >= 0; j--) {
-                if (processBishopMove(legalMoves, i, j)) break topLeft;
-            }
-        }
-
-        bottomRight:
-        for (int i = yp + 1; i < 8; i++) {
-            for (int j = xp + 1; j < 8; j++) {
-                if (processBishopMove(legalMoves, i, j)) break bottomRight;
-            }
-        }
-
-        bottomLeft:
-        for (int i = yp + 1; i < 8; i++) {
-            for (int j = xp - 1; j >= 0; j--) {
-                if (processBishopMove(legalMoves, i, j)) break bottomLeft;
-            }
-        }
-
-        return legalMoves;
-    }
-    private boolean processRookMove(ArrayList<Move> legalMoves, int a, int b) {
-        if (board.isCaseEmpty(a, b))
-            legalMoves.add(new Move(a, b, false));
-        else {
-            if (board.getPiece(a, b).isWhite == !isWhite) {
-                legalMoves.add(new Move(a, b, true));
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean processBishopMove(Collection<Move> legalMoves, int i, int j) {
-        if (Math.abs(i - yp) == Math.abs(j - xp)){
-            if (board.isCaseEmpty(j, i)) {
-                legalMoves.add(new Move(j, i, false));
-            }
-            else {
-                if (board.getPiece(j, i).isWhite == !isWhite) {
-                    legalMoves.add(new Move(j, i, true));
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean isLegalMove(int x, int y) {
-        for (Move m : getLegalMoves()) {
-            if (m.getX() == x && m.getY() == y) return true;
-        }
-        return false;
+        return ImmutableList.copyOf(pseudoLegalMoves);
     }
 
     @Override

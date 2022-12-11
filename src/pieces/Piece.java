@@ -12,6 +12,7 @@ import java.util.Collection;
 
 public abstract class Piece {
 
+    protected int index;
     protected int xp, yp;
     protected int x, y;
     protected boolean isWhite;
@@ -33,18 +34,17 @@ public abstract class Piece {
         this.yp = yp;
         this.x = xp * Game.TILES_SIZE;
         this.y = yp * Game.TILES_SIZE;
+        this.index = yp * 8 + xp;
         this.board = board;
 
         this.didMove = false;
 
-        board.getPieces().add(this);
+        board.getPieces()[index] = this;
         setIsWhite();
         loadImage();
     }
 
     public abstract Collection<Move> getLegalMoves();
-
-    public abstract boolean isLegalMove(int x, int y);
 
     public abstract void draw(Graphics g);
 
@@ -59,10 +59,8 @@ public abstract class Piece {
     protected void setIsWhite() {
         if (y > 2) {
             isWhite = true;
-            player = board.getwPlayer();
         } else {
             isWhite = false;
-            player = board.getbPlayer();
         }
     }
 
@@ -77,6 +75,9 @@ public abstract class Piece {
         this.y = y;
         this.xp = x / Game.TILES_SIZE;
         this.yp = y / Game.TILES_SIZE;
+        board.getPieces()[index] = null;
+        index = yp * 8 + xp;
+        board.getPieces()[index] = this;
     }
 
     /**
@@ -92,6 +93,13 @@ public abstract class Piece {
 
     public void forceMove(Move m) {
         forcedMove = m;
+    }
+
+    public boolean isLegalMove(int x, int y) {
+        for (Move m : getLegalMoves()) {
+            if (m.getX() == x && m.getY() == y) return true;
+        }
+        return false;
     }
 
     public int getX() {
@@ -120,6 +128,14 @@ public abstract class Piece {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public Board getBoard() {
+        return board;
     }
 
     public void setDidMove(boolean didMove) {

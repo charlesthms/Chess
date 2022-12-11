@@ -1,39 +1,56 @@
 package core;
 
-import com.google.common.collect.ImmutableList;
 import pieces.*;
 import gui.Game;
+import utils.Helpers;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
 
 public class Board {
 
-    private LinkedList<Piece> pieces = new LinkedList<>();
+    public static final int[] DIRECTION_OFFSETS = new int[]{-8, 8, -1, 1, -9, 9, -7, 7};
+    public static int[][] distanceToEdge = new int[64][8];
+
+    private Piece[] pieces = new Piece[64];
     private Piece selected = null;
     private Point2D hoverEffect = null;
 
-    private Player wPlayer;
-    private Player bPlayer;
-
-    private int i = 0;
-    private Player currentPlayer;
 
     public Board() {
-        bPlayer = new Player(this, false, null, 1);
-        wPlayer = new Player(this, true, null, 0);
-        bPlayer.setKing(new King(4, 0, this));
-        wPlayer.setKing(new King(4, 7, this));
-
-        currentPlayer = wPlayer;
         initPieces();
+        precomputeMoveData();
+    }
+
+    private void precomputeMoveData() {
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                int north = y;
+                int south = 7 - y;
+                int west = x;
+                int east = 7 - x;
+
+                int squareIndex = y * 8 + x;
+
+                distanceToEdge[squareIndex] = new int[]{
+                        north,
+                        south,
+                        west,
+                        east,
+                        Math.min(north, west),
+                        Math.min(south, east),
+                        Math.min(north, east),
+                        Math.min(south, west)
+                };
+            }
+        }
     }
 
     private void initPieces() {
+        new King(4, 7, this);
+        new King(4, 0, this);
+
         new Queen(3, 0, this);
         new Queen(3, 7, this);
 
@@ -65,11 +82,14 @@ public class Board {
             }
         }
 
-        pieces.forEach(p -> p.draw(g));
+        for (Piece piece : pieces) {
+            if (piece != null) piece.draw(g);
+        }
 
         if (selected != null) {
             drawAccentEffect(g);
             drawHoverEffect(g);
+            drawThreats(g);
 
             selected.getLegalMoves().forEach(move -> {
                 move.draw(g);
@@ -94,6 +114,19 @@ public class Board {
         g2.setStroke(oldStroke);
     }
 
+    private void drawThreats(Graphics g) {
+        boolean[] threatMap = Helpers.getThreatMap(pieces, selected);
+
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (threatMap[i * 8 + j]) {
+                    g.setColor(new Color(1f, 0f, 0f, .5f));
+                    g.fillRect(j * Game.TILES_SIZE, i * Game.TILES_SIZE, Game.TILES_SIZE, Game.TILES_SIZE);
+                }
+            }
+        }
+    }
+
     public void update() {
 
     }
@@ -111,34 +144,11 @@ public class Board {
             int alignedY = y - (y % Game.TILES_SIZE);
 
             if (piece.isLegalMove(alignedX, alignedY)) {
-                Piece p = getPiece(x / Game.TILES_SIZE, y / Game.TILES_SIZE);
-                if (p != null && p != selected) getPieces().remove(p);
-
-                // Si la piece selected est un roi -> verifier si le castle est possible
-                if (piece instanceof King k) {
-                    System.out.println("Castling possible: " + k.isCastlingPossible());
-
-                    for (CastleMove cm : k.getCastlingMoves()) {
-                        if (cm.getMove().getX() == alignedX && cm.getMove().getY() == alignedY) {
-                            cm.getRook().updatePosition(alignedX - Game.TILES_SIZE, alignedY);
-                        }
-                    }
-
-                }
                 piece.updatePosition(alignedX, alignedY);
-                selected.setDidMove(true);
-                updatePlayerTurn();
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
             }
         }
-    }
-
-    private void updatePlayerTurn() {
-        i = 1 - i;
-
-        if (wPlayer.getTurn() == i) currentPlayer = wPlayer;
-        else currentPlayer = bPlayer;
     }
 
     /**
@@ -149,52 +159,32 @@ public class Board {
      * @return true si aucune pièce se trouve aux coordonnées false sinon
      */
     public boolean isCaseEmpty(int xp, int yp) {
-        for (Piece p : pieces) {
-            if (p.getXp() == xp && p.getYp() == yp) return false;
-        }
-        return true;
+
+        return pieces[yp * 8 + xp] == null;
     }
 
     public Piece getPiece(int xp, int yp) {
         for (Piece p : pieces) {
-            if (p.getXp() == xp && p.getYp() == yp) return p;
+            if (p != null)
+                if (p.getXp() == xp && p.getYp() == yp) return p;
         }
         return null;
+    }
+
+    public Piece getPiece(int index) {
+        return pieces[index];
     }
 
     public void mouseClicked(MouseEvent e) {
 
     }
 
-    /**
-     * Permet d'obtenir les pièces authorisées à bouger en cas de mise en échec du roi
-     *
-     * @param pieces Collection de pièces
-     * @param k Roi
-     * @return Liste
-     */
-    private Collection<Piece> getAuthorizedPieces(ArrayList<Piece> pieces, King k) {
-        ArrayList<Piece> legalPieces = new ArrayList<>();
-        for (Piece p : k.attackingPieces()) {
-            for (Piece playerPiece : pieces) {
-                for (Move m : playerPiece.getLegalMoves()) {
-                    if (m.getXp() == p.getXp() && m.getYp() == p.getYp()) {
-                        playerPiece.forceMove(m);
-                        legalPieces.add(playerPiece);
-                    }
-                }
-            }
-        }
-        return ImmutableList.copyOf(legalPieces);
-    }
-
-    private void onMousePressed(Collection<Piece> pieces, int x, int y, boolean reset) {
+    private void onMousePressed(int x, int y) {
         for (Piece p : pieces) {
-            if (reset) p.forceMove(null);
-            Rectangle hitbox = new Rectangle(p.getX(), p.getY(), Game.TILES_SIZE, Game.TILES_SIZE);
+            if (p != null) {
+                Rectangle hitbox = new Rectangle(p.getX(), p.getY(), Game.TILES_SIZE, Game.TILES_SIZE);
 
-            if (hitbox.contains(x, y)){
-                if (p.isWhite() == currentPlayer.isWhite()) {
+                if (hitbox.contains(x, y)){
                     selected = p;
                     int alignedX = x - (x % Game.TILES_SIZE);
                     int alignedY = y - (y % Game.TILES_SIZE);
@@ -209,7 +199,7 @@ public class Board {
         // 1.) Trouver la ou les pièces qui l'attaque
         // 2.) Trouver les pieces alliés qui attaquent la ou les pièces menacentes
         // 3.) Ajouter ces pièces aux mouvements possibles
-        if (currentPlayer.isInCheck()) {
+        /*if (currentPlayer.isInCheck()) {
             System.out.println("ECHEC");
             King king = currentPlayer.getKing();
 
@@ -225,7 +215,8 @@ public class Board {
 
         } else {
             onMousePressed(pieces, e.getX(), e.getY(), true);
-        }
+        }*/
+        onMousePressed(e.getX(), e.getY());
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -256,19 +247,11 @@ public class Board {
 
     }
 
-    public LinkedList<Piece> getPieces() {
+    public Piece[] getPieces() {
         return pieces;
     }
 
-    public Player getCurrentPlayer() {
-        return currentPlayer;
-    }
-
-    public Player getwPlayer() {
-        return wPlayer;
-    }
-
-    public Player getbPlayer() {
-        return bPlayer;
+    public void setPieces(Piece[] pieces) {
+        this.pieces = pieces;
     }
 }

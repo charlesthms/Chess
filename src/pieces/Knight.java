@@ -10,6 +10,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static utils.Helpers.generateMoves;
+
 public class Knight extends Piece {
 
     /**
@@ -25,38 +27,9 @@ public class Knight extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
-        if (forcedMove != null) {
-            ArrayList<Move> res = new ArrayList<>();
-            res.add(forcedMove);
-            return ImmutableList.copyOf(res);
-        } else {
-            return legalMoves();
-        }
-    }
+        ArrayList pseudoLegalMoves = new ArrayList(generateMoves(this));
 
-    private Collection<Move> legalMoves() {
-        ArrayList<Move> legalMoves = new ArrayList<>();
-        var knightMoves = new int[][] { {1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {-2, -1}, {-2, 1}, {2, -1}, {2, 1} };
-
-        for (int[] knightMove : knightMoves) {
-            if (board.isCaseEmpty(xp + knightMove[0], yp + knightMove[1]))
-                legalMoves.add(new Move(xp + knightMove[0], yp + knightMove[1], false));
-            else {
-                if (board.getPiece(xp + knightMove[0], yp + knightMove[1]).isWhite == !isWhite) {
-                    legalMoves.add(new Move(xp + knightMove[0], yp + knightMove[1], true));
-                }
-            }
-        }
-
-        return ImmutableList.copyOf(legalMoves);
-    }
-
-    @Override
-    public boolean isLegalMove(int x, int y) {
-        for (Move m : getLegalMoves()) {
-            if (m.getX() == x && m.getY() == y) return true;
-        }
-        return false;
+        return ImmutableList.copyOf(pseudoLegalMoves);
     }
 
     @Override
