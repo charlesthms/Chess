@@ -71,14 +71,17 @@ public class Board {
     }
 
     public void draw(Graphics g) {
+        g.setColor(new Color(39, 39, 39));
+        g.fillRect(0, 0, Game.WIDTH, Game.HEIGHT);
+
         for (int y=0; y<8; y++) {
             for (int x=0; x<8; x++) {
                 if((x + y) % 2 == 0) {
-                    g.setColor(new Color(116, 150, 86));
-                } else {
                     g.setColor(new Color(238, 238, 210));
+                } else {
+                    g.setColor(new Color(116, 150, 86));
                 }
-                g.fillRect(x * Game.TILES_SIZE, y * Game.TILES_SIZE, Game.TILES_SIZE, Game.TILES_SIZE);
+                g.fillRect(x * Game.TILES_SIZE + 30, y * Game.TILES_SIZE + 30, Game.TILES_SIZE, Game.TILES_SIZE);
             }
         }
 
@@ -97,11 +100,36 @@ public class Board {
 
             selected.draw(g);
         }
+
+        drawCoords(g);
+    }
+
+    private void drawCoords(Graphics g) {
+        g.setColor(new Color(238, 238, 210));
+        Font font = new Font("SansSerif", Font.PLAIN, 12);
+        font = font.deriveFont(20f); // set font size to 24pt
+        g.setFont(font);
+
+        int index = 0;
+        for (char c = 'a'; c < 'i'; c++) {
+            g.drawString(Character.toString(c), index * Game.TILES_SIZE + Game.OFFSET + Game.TILES_SIZE/2 - 10, 22);
+            g.drawString(Character.toString(c), index * Game.TILES_SIZE + Game.OFFSET + Game.TILES_SIZE/2 - 10, Game.HEIGHT - 8);
+
+            index++;
+        }
+
+        for (int i = 0; i < 8; i++) {
+            g.drawString(String.valueOf(8 - i), 8, i * Game.TILES_SIZE + Game.OFFSET + Game.TILES_SIZE/2 + 5);
+            g.drawString(String.valueOf(8 - i), Game.WIDTH - 20, i * Game.TILES_SIZE + Game.OFFSET + Game.TILES_SIZE/2 + 5);
+
+        }
+
+
     }
 
     private void drawAccentEffect(Graphics g) {
         g.setColor(new Color(1f, 1f, 0f, .5f));
-        g.fillRect(selected.getXp() * Game.TILES_SIZE, selected.getYp() * Game.TILES_SIZE, Game.TILES_SIZE, Game.TILES_SIZE);
+        g.fillRect(selected.getXp() * Game.TILES_SIZE + Game.OFFSET, selected.getYp() * Game.TILES_SIZE + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE);
     }
 
     private void drawHoverEffect(Graphics g) {
@@ -110,7 +138,7 @@ public class Board {
         float thickness = 2f;
         Stroke oldStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(thickness));
-        g2.drawRect((int) hoverEffect.getX(), (int) hoverEffect.getY(), Game.TILES_SIZE, Game.TILES_SIZE);
+        g2.drawRect((int) hoverEffect.getX() + Game.OFFSET, (int) hoverEffect.getY() + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE);
         g2.setStroke(oldStroke);
     }
 
@@ -121,7 +149,7 @@ public class Board {
             for (int j = 0; j < 8; j++) {
                 if (threatMap[i * 8 + j]) {
                     g.setColor(new Color(1f, 0f, 0f, .5f));
-                    g.fillRect(j * Game.TILES_SIZE, i * Game.TILES_SIZE, Game.TILES_SIZE, Game.TILES_SIZE);
+                    g.fillRect(j * Game.TILES_SIZE + Game.OFFSET, i * Game.TILES_SIZE + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE);
                 }
             }
         }
@@ -144,7 +172,12 @@ public class Board {
             int alignedY = y - (y % Game.TILES_SIZE);
 
             if (piece.isLegalMove(alignedX, alignedY)) {
+                // Castle the rook
+                CastlingMove m = piece.isCastlingMove(alignedX, alignedY);
+                if (m != null) m.moveRook();
+
                 piece.updatePosition(alignedX, alignedY);
+                piece.setDidMove(true);
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
             }
@@ -216,7 +249,7 @@ public class Board {
         } else {
             onMousePressed(pieces, e.getX(), e.getY(), true);
         }*/
-        onMousePressed(e.getX(), e.getY());
+        onMousePressed(e.getX() - Game.OFFSET, e.getY() - Game.OFFSET);
     }
 
     public void mouseDragged(MouseEvent e) {

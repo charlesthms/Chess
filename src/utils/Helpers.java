@@ -12,6 +12,21 @@ public class Helpers {
 
     private final static int[] knightMoves = new int[] { 6, -6, 10, -10, 15, -15, 17, -17 };
 
+    private static Piece findKing(Piece p) {
+        for (Piece candidat : p.getBoard().getPieces()) {
+            if (candidat instanceof King && candidat.isWhite() == p.isWhite()) return candidat;
+        }
+        return null;
+    }
+
+    public static boolean isKingChecked(Piece p, boolean isKing) {
+        Piece king = p;
+        if (!isKing) king = findKing(p);
+
+        boolean[] threatsMap = getThreatMap(p.getBoard().getPieces(), king);
+
+        return threatsMap[king.getYp() * 8 + king.getXp()];
+    }
 
     private static Collection<Move> generateKnightMoves(Piece p) {
         ArrayList<Move> moves = new ArrayList<>();
@@ -28,8 +43,9 @@ public class Helpers {
                 Piece target = p.getBoard().getPiece(targetIndex);
 
                 if (target != null) {
-                    if (target.isWhite() == !p.isWhite())
+                    if (target.isWhite() == !p.isWhite()) {
                         moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                    }
                 } else {
                     moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
                 }
@@ -53,8 +69,9 @@ public class Helpers {
             if (targetIndex >= 0 && targetIndex < 64 && maxDist == 1) {
                 Piece target = p.getBoard().getPiece(targetIndex);
                 if (target != null) {
-                    if (target.isWhite() == !p.isWhite())
+                    if (target.isWhite() == !p.isWhite()) {
                         moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                    }
                 } else {
                     moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
                 }

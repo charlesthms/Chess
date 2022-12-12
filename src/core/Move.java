@@ -14,8 +14,8 @@ public class Move {
     /**
      * Créer un mouvement
      *
-     * @param x Coordonnée x en pixels
-     * @param y Coordonnée y en pixels
+     * @param x Coordonnée x en cases
+     * @param y Coordonnée y en cases
      * @param isLethal true si le coup engendre la mort d'une autre pièce
      */
     public Move(int x, int y, boolean isLethal) {
@@ -38,12 +38,12 @@ public class Move {
     private void drawTip(Graphics2D g2) {
         g2.setColor(new Color(0, 0, 0, 50));
         int size = (int) (10 * Game.SCALE);
-        g2.fillOval(x + size , y + size, size, size);
+        g2.fillOval(x + size + Game.OFFSET, y + size + Game.OFFSET, size, size);
     }
 
     private void drawTake(Graphics2D g2) {
         g2.setColor(new Color(0, 0, 0, 50));
-        Shape t = createRingShape(x + Game.TILES_SIZE / 2f, y + Game.TILES_SIZE / 2f, Game.TILES_SIZE / 2f, 8);
+        Shape t = createRingShape(x + Game.TILES_SIZE / 2f + Game.OFFSET, y + Game.TILES_SIZE / 2f + Game.OFFSET, Game.TILES_SIZE / 2f, 8);
         g2.draw(t);
         g2.fill(t);
     }

@@ -1,6 +1,7 @@
 package pieces;
 
 import core.Board;
+import core.CastlingMove;
 import core.Move;
 import core.Player;
 import gui.Game;
@@ -9,6 +10,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static utils.Helpers.isKingChecked;
 
 public abstract class Piece {
 
@@ -20,7 +23,8 @@ public abstract class Piece {
     protected BufferedImage image;
     protected Board board;
     protected Player player;
-    protected Move forcedMove;
+
+    private Piece savedPiece;
 
     /**
      * Classe héritée par toutes les pièces
@@ -49,6 +53,41 @@ public abstract class Piece {
     public abstract void draw(Graphics g);
 
     public abstract void update();
+
+    protected Piece[] doMove(Piece[] pieces, Move m) {
+        savedPiece = pieces[m.getYp() * 8 + m.getXp()];
+        pieces[index] = null;
+        index = m.getYp() * 8 + m.getXp();
+        pieces[index] = this;
+
+        return pieces;
+    }
+
+    protected void undoMove(Piece[] pieces, int i) {
+        pieces[index] = savedPiece;
+        index = i;
+        pieces[index] = this;
+    }
+
+    protected Collection<Move> simulateMoves(ArrayList<Move> pseudoLegalMoves) {
+        ArrayList<Move> moves = new ArrayList<>();
+        int initial_index = index;
+        Piece[] pieces_backup = board.getPieces().clone();
+
+        for (Move m : pseudoLegalMoves) {
+            Piece[] pieces;
+            pieces = doMove(board.getPieces(), m);
+
+            if (!isKingChecked(this, false)) {
+                moves.add(m);
+            }
+
+            undoMove(pieces, initial_index);
+        }
+        board.setPieces(pieces_backup);
+
+        return moves;
+    }
 
 
     /**
@@ -91,8 +130,11 @@ public abstract class Piece {
         this.y = y;
     }
 
-    public void forceMove(Move m) {
-        forcedMove = m;
+    public CastlingMove isCastlingMove(int x, int y) {
+        for (Move m : getLegalMoves()) {
+            if (m instanceof CastlingMove && m.getX() == x && m.getY() == y) return (CastlingMove) m;
+        }
+        return null;
     }
 
     public boolean isLegalMove(int x, int y) {
@@ -100,6 +142,12 @@ public abstract class Piece {
             if (m.getX() == x && m.getY() == y) return true;
         }
         return false;
+    }
+
+    public String toString() {
+        String col = Character.toString(97 + xp);
+        int row = 8 - yp;
+        return col+row;
     }
 
     public int getX() {

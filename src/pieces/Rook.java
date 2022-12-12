@@ -14,8 +14,6 @@ import static utils.Helpers.generateMoves;
 
 public class Rook extends Piece {
 
-    private boolean didMove;
-
     public Rook(int x, int y, Board board) {
         super(x, y, board);
         didMove = false;
@@ -31,7 +29,7 @@ public class Rook extends Piece {
 
     @Override
     public void draw(Graphics g) {
-        g.drawImage(image, x, y, Game.TILES_SIZE, Game.TILES_SIZE, null);
+        g.drawImage(image, x + Game.OFFSET, y + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE, null);
     }
 
     @Override
@@ -47,16 +45,8 @@ public class Rook extends Piece {
     @Override
     public Collection<Move> getLegalMoves() {
         ArrayList<Move> pseudoLegalMoves = new ArrayList<>(generateMoves(this));
-        ArrayList<Move> legalMoves = new ArrayList<>();
+        ArrayList<Move> legalMoves = new ArrayList<>(simulateMoves(pseudoLegalMoves));
 
-        return ImmutableList.copyOf(pseudoLegalMoves);
-    }
-
-    public boolean didMove() {
-        return didMove;
-    }
-
-    public void setDidMove(boolean didMove) {
-        this.didMove = didMove;
+        return ImmutableList.copyOf(legalMoves);
     }
 }

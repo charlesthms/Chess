@@ -28,13 +28,14 @@ public class Knight extends Piece {
     @Override
     public Collection<Move> getLegalMoves() {
         ArrayList pseudoLegalMoves = new ArrayList(generateMoves(this));
+        ArrayList<Move> legalMoves = new ArrayList<>(simulateMoves(pseudoLegalMoves));
 
-        return ImmutableList.copyOf(pseudoLegalMoves);
+        return ImmutableList.copyOf(legalMoves);
     }
 
     @Override
     public void draw(Graphics g) {
-        g.drawImage(image, x, y, Game.TILES_SIZE, Game.TILES_SIZE, null);
+        g.drawImage(image, x + Game.OFFSET, y + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE, null);
     }
 
     @Override

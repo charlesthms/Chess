@@ -10,8 +10,9 @@ public class Game implements Runnable {
     public static final int TILES = 8;
     public static final float SCALE = 3f;
     public static final int TILES_SIZE = (int) (DEFAULT_TILE_SIZE * SCALE);
-    public static final int WIDTH = TILES_SIZE * TILES;
+    public static final int WIDTH = TILES_SIZE * TILES + 60;
     public static final int HEIGHT = WIDTH;
+    public static final int OFFSET = 30;
 
     private Thread gameThread;
     private GamePanel gamePanel;
