@@ -25,6 +25,10 @@ public class Queen extends Piece {
         super(xp, yp, board);
     }
 
+    public Queen(int xp, int yp, Board board, boolean isWhite) {
+        super(xp, yp, board, isWhite);
+    }
+
     @Override
     public Collection<Move> getLegalMoves() {
         ArrayList<Move> pseudoLegalMoves = new ArrayList<>(generateMoves(this));
@@ -38,10 +42,6 @@ public class Queen extends Piece {
         g.drawImage(image, x + Game.OFFSET, y + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE, null);
     }
 
-    @Override
-    public void update() {
-
-    }
 
     @Override
     protected void loadImage() {

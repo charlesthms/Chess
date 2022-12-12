@@ -12,12 +12,14 @@ public class Loader {
     public static final String B_BISHOP = "pieces/black/bishop.png";
     public static final String B_QUEEN = "pieces/black/queen.png";
     public static final String B_KNIGHT = "pieces/black/knight.png";
+    public static final String B_PAWN = "pieces/black/pawn.png";
 
     public static final String W_KING = "pieces/white/king.png";
     public static final String W_TOWER = "pieces/white/rook.png";
     public static final String W_BISHOP = "pieces/white/bishop.png";
     public static final String W_QUEEN = "pieces/white/queen.png";
     public static final String W_KNIGHT = "pieces/white/knight.png";
+    public static final String W_PAWN = "pieces/white/pawn.png";
 
     public static BufferedImage getImage(String path) {
         BufferedImage img = null;

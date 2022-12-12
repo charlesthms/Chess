@@ -19,6 +19,11 @@ public class Rook extends Piece {
         didMove = false;
     }
 
+    public Rook(int x, int y, Board board, boolean isWhite) {
+        super(x, y, board, isWhite);
+        didMove = false;
+    }
+
     @Override
     public void loadImage() {
         if (isWhite)
@@ -30,11 +35,6 @@ public class Rook extends Piece {
     @Override
     public void draw(Graphics g) {
         g.drawImage(image, x + Game.OFFSET, y + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE, null);
-    }
-
-    @Override
-    public void update() {
-
     }
 
     /**

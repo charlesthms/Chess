@@ -113,11 +113,6 @@ public class King extends Piece {
     }
 
     @Override
-    public void update() {
-
-    }
-
-    @Override
     protected void loadImage() {
         if (isWhite)
             image = Loader.getImage(Loader.W_KING);

@@ -12,13 +12,16 @@ public class Board {
 
     public static final int[] DIRECTION_OFFSETS = new int[]{-8, 8, -1, 1, -9, 9, -7, 7};
     public static int[][] distanceToEdge = new int[64][8];
+    public static Piece lastMovedPiece;
 
     private Piece[] pieces = new Piece[64];
     private Piece selected = null;
     private Point2D hoverEffect = null;
 
+    private Game game;
 
-    public Board() {
+    public Board(Game game) {
+        this.game = game;
         initPieces();
         precomputeMoveData();
     }
@@ -68,6 +71,24 @@ public class Board {
         new Rook(7, 0, this);
         new Rook(0, 7, this);
         new Rook(7, 7, this);
+
+        new Pawn(0, 1, this);
+        new Pawn(1, 1, this);
+        new Pawn(2, 1, this);
+        new Pawn(3, 1, this);
+        new Pawn(4, 1, this);
+        new Pawn(5, 1, this);
+        new Pawn(6, 1, this);
+        new Pawn(7, 1, this);
+
+        new Pawn(0, 6, this);
+        new Pawn(1, 6, this);
+        new Pawn(2, 6, this);
+        new Pawn(3, 6, this);
+        new Pawn(4, 6, this);
+        new Pawn(5, 6, this);
+        new Pawn(6, 6, this);
+        new Pawn(7, 6, this);
     }
 
     public void draw(Graphics g) {
@@ -173,35 +194,28 @@ public class Board {
 
             if (piece.isLegalMove(alignedX, alignedY)) {
                 // Castle the rook
-                CastlingMove m = piece.isCastlingMove(alignedX, alignedY);
-                if (m != null) m.moveRook();
+                CastlingMove cm = piece.isCastlingMove(alignedX, alignedY);
+                if (cm != null) cm.moveRook();
+
+                // Promote
+                PromoteMove pm = piece.isPromoteMove(alignedX, alignedY);
+                if (pm != null) piece = pm.showPromoteDialog(piece);
+
+                // En passant
+                EnPassantMove epm = piece.isEnPassantMove(alignedX, alignedY);
+                if (epm != null) epm.killTarget();
 
                 piece.updatePosition(alignedX, alignedY);
                 piece.setDidMove(true);
+                lastMovedPiece = piece;
+
+                if (piece instanceof Pawn p)
+                    p.setLastMoveIndex(piece.getIndex());
+
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
             }
         }
-    }
-
-    /**
-     * Permet de savoir si une case est vide
-     *
-     * @param xp Position x en case
-     * @param yp Position y en case
-     * @return true si aucune pièce se trouve aux coordonnées false sinon
-     */
-    public boolean isCaseEmpty(int xp, int yp) {
-
-        return pieces[yp * 8 + xp] == null;
-    }
-
-    public Piece getPiece(int xp, int yp) {
-        for (Piece p : pieces) {
-            if (p != null)
-                if (p.getXp() == xp && p.getYp() == yp) return p;
-        }
-        return null;
     }
 
     public Piece getPiece(int index) {
@@ -228,27 +242,6 @@ public class Board {
     }
 
     public void mousePressed(MouseEvent e) {
-        // Si le joueur est en échec,
-        // 1.) Trouver la ou les pièces qui l'attaque
-        // 2.) Trouver les pieces alliés qui attaquent la ou les pièces menacentes
-        // 3.) Ajouter ces pièces aux mouvements possibles
-        /*if (currentPlayer.isInCheck()) {
-            System.out.println("ECHEC");
-            King king = currentPlayer.getKing();
-
-            if (king.getLegalMoves().size() == 0) {
-                System.out.println("ECHEC ET MATTE");
-            }
-
-            ArrayList<Piece> playerPieces = (ArrayList<Piece>) currentPlayer.getPieces();
-            ArrayList<Piece> legalPieces = new ArrayList<>(getAuthorizedPieces(playerPieces, king));
-            legalPieces.add(king);
-
-            onMousePressed(legalPieces, e.getX(), e.getY(), false);
-
-        } else {
-            onMousePressed(pieces, e.getX(), e.getY(), true);
-        }*/
         onMousePressed(e.getX() - Game.OFFSET, e.getY() - Game.OFFSET);
     }
 
@@ -258,7 +251,7 @@ public class Board {
             int alignedY = e.getY() - (e.getY() % Game.TILES_SIZE);
             hoverEffect = new Point(alignedX, alignedY);
 
-            selected.updateDisplayPosition(e.getX() - Game.TILES_SIZE / 2, e.getY() - Game.TILES_SIZE / 2);
+            selected.updateDisplayPosition(e.getX() - Game.TILES_SIZE / 2 - Game.OFFSET, e.getY() - Game.TILES_SIZE / 2 - Game.OFFSET);
         }
     }
 
@@ -286,5 +279,9 @@ public class Board {
 
     public void setPieces(Piece[] pieces) {
         this.pieces = pieces;
+    }
+
+    public Game getGame() {
+        return game;
     }
 }

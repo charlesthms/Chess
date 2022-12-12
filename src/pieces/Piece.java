@@ -1,9 +1,6 @@
 package pieces;
 
-import core.Board;
-import core.CastlingMove;
-import core.Move;
-import core.Player;
+import core.*;
 import gui.Game;
 
 import java.awt.*;
@@ -48,11 +45,25 @@ public abstract class Piece {
         loadImage();
     }
 
-    public abstract Collection<Move> getLegalMoves();
+    public Piece(int xp, int yp, Board board, boolean isWhite) {
+        this.xp = xp;
+        this.yp = yp;
+        this.x = xp * Game.TILES_SIZE;
+        this.y = yp * Game.TILES_SIZE;
+        this.index = yp * 8 + xp;
+        this.board = board;
 
+        this.didMove = false;
+
+        board.getPieces()[index] = this;
+        this.isWhite = isWhite;
+        loadImage();
+    }
+
+    public abstract Collection<Move> getLegalMoves();
     public abstract void draw(Graphics g);
 
-    public abstract void update();
+    protected abstract void loadImage();
 
     protected Piece[] doMove(Piece[] pieces, Move m) {
         savedPiece = pieces[m.getYp() * 8 + m.getXp()];
@@ -89,18 +100,33 @@ public abstract class Piece {
         return moves;
     }
 
+    protected ArrayList<Move> simulateEnPassant(ArrayList<Move> pseudoLegalMoves) {
+        ArrayList<Move> moves = new ArrayList<>(pseudoLegalMoves);
+        int initial_index = index;
+        Piece[] pieces_backup = board.getPieces().clone();
 
-    /**
-     * Charge l'image de la pièce
-     */
-    protected abstract void loadImage();
+        for (Move m : pseudoLegalMoves) {
+            if (m instanceof EnPassantMove epm){
+                Piece[] pieces;
+                pieces = doMove(board.getPieces(), m);
+                Piece tmp = pieces[epm.getTarget().getIndex()];
+                pieces[epm.getTarget().getIndex()] = null;
+
+                if (isKingChecked(this, false)) {
+                    moves.remove(epm);
+                }
+
+                pieces[epm.getTarget().getIndex()] = tmp;
+                undoMove(pieces, initial_index);
+            }
+        }
+        board.setPieces(pieces_backup);
+
+        return moves;
+    }
 
     protected void setIsWhite() {
-        if (y > 2) {
-            isWhite = true;
-        } else {
-            isWhite = false;
-        }
+        isWhite = yp > 2;
     }
 
     /**
@@ -133,6 +159,20 @@ public abstract class Piece {
     public CastlingMove isCastlingMove(int x, int y) {
         for (Move m : getLegalMoves()) {
             if (m instanceof CastlingMove && m.getX() == x && m.getY() == y) return (CastlingMove) m;
+        }
+        return null;
+    }
+
+    public PromoteMove isPromoteMove(int x, int y) {
+        for (Move m : getLegalMoves()) {
+            if (m instanceof PromoteMove && m.getX() == x && m.getY() == y) return (PromoteMove) m;
+        }
+        return null;
+    }
+
+    public EnPassantMove isEnPassantMove(int x, int y) {
+        for (Move m : getLegalMoves()) {
+            if (m instanceof EnPassantMove && m.getX() == x && m.getY() == y) return (EnPassantMove) m;
         }
         return null;
     }
@@ -188,5 +228,9 @@ public abstract class Piece {
 
     public void setDidMove(boolean didMove) {
         this.didMove = didMove;
+    }
+
+    public boolean didMove() {
+        return didMove;
     }
 }

@@ -25,6 +25,11 @@ public class Knight extends Piece {
         super(xp, yp, board);
     }
 
+    public Knight(int xp, int yp, Board board, boolean isWhite) {
+        super(xp, yp, board, isWhite);
+    }
+
+
     @Override
     public Collection<Move> getLegalMoves() {
         ArrayList pseudoLegalMoves = new ArrayList(generateMoves(this));
@@ -36,11 +41,6 @@ public class Knight extends Piece {
     @Override
     public void draw(Graphics g) {
         g.drawImage(image, x + Game.OFFSET, y + Game.OFFSET, Game.TILES_SIZE, Game.TILES_SIZE, null);
-    }
-
-    @Override
-    public void update() {
-
     }
 
     @Override

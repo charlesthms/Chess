@@ -30,7 +30,7 @@ public class Game implements Runnable {
     }
 
     private void initClasses() {
-        boardManager = new Board();
+        boardManager = new Board(this);
     }
 
     private void startGameLoop() {

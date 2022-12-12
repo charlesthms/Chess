@@ -2,6 +2,7 @@ package utils;
 
 import core.Board;
 import core.Move;
+import core.PromoteMove;
 import pieces.*;
 
 import java.util.ArrayList;
@@ -10,7 +11,8 @@ import java.util.Collection;
 
 public class Helpers {
 
-    private final static int[] knightMoves = new int[] { 6, -6, 10, -10, 15, -15, 17, -17 };
+    private static final int[] knightMoves = new int[] { 6, -6, 10, -10, 15, -15, 17, -17 };
+    private static final int[][] pawnAttacks = { {-9, -7}, {7, 9} };
 
     private static Piece findKing(Piece p) {
         for (Piece candidat : p.getBoard().getPieces()) {
@@ -106,12 +108,58 @@ public class Helpers {
         return moves;
     }
 
+    private static ArrayList<Move> generatePawnMoves(Piece p) {
+        ArrayList<Move> moves = new ArrayList<>();
+        if (p.getYp() == 0) return moves;
+        int startRow = p.isWhite() ? 6 : 1;
+        int colorIndex = p.isWhite() ? 0 : 1;
+
+        generatePathMoves(moves, p, 1);
+
+        if (p.getYp() == startRow) {
+            generatePathMoves(moves, p, 2);
+        }
+
+        // Lethal moves
+        for (int i = 0; i < 2; i++) {
+            // Check si une case existe en diagonale du pion
+            int targetIndex = p.getIndex() + pawnAttacks[colorIndex][i];
+            Piece target = p.getBoard().getPiece(targetIndex);
+
+            if (target != null && target.isWhite() == !p.isWhite()) {
+                if (inRange(targetIndex, 0, 8) || inRange(targetIndex, 56, 64)) {
+                    moves.add(new PromoteMove(targetIndex % 8, targetIndex / 8, true, p.getBoard().getGame()));
+                } else {
+                    moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                }
+            }
+        }
+
+        return moves;
+    }
+
+    private static void generatePathMoves(ArrayList<Move> moves, Piece p, int n){
+        int offset = p.isWhite() ? -8 : 8;
+        int targetIndex = p.getIndex() + (offset * n);
+        Piece target = p.getBoard().getPiece(targetIndex);
+
+        if (target == null) {
+            if (inRange(targetIndex, 0, 8) || inRange(targetIndex, 56, 64)) {
+                moves.add(new PromoteMove(targetIndex % 8, targetIndex / 8, false, p.getBoard().getGame()));
+            } else {
+                moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
+            }
+        }
+    }
+
     public static Collection<Move> generateMoves(Piece p) {
 
         ArrayList<Move> moves;
 
         if (p instanceof Knight) {
             moves = new ArrayList<>(generateKnightMoves(p));
+        } else if (p instanceof Pawn) {
+            moves = new ArrayList<>(generatePawnMoves(p));
         } else if (p instanceof King) {
             moves = new ArrayList<>(generateKingMoves(p));
         } else {
@@ -136,11 +184,19 @@ public class Helpers {
             if (opponent != null && opponent.isWhite() == !p.isWhite()) {
                 ArrayList<Move> opponentMoves = (ArrayList<Move>) generateMoves(opponent);
                 for (Move m : opponentMoves) {
-                    map[m.getYp() * 8 + m.getXp()] = true;
+                    if (opponent instanceof Pawn) {
+                        if (m.isLethal()) map[m.getYp() * 8 + m.getXp()] = true;
+                    } else {
+                        map[m.getYp() * 8 + m.getXp()] = true;
+                    }
                 }
             }
         }
 
         return map;
+    }
+
+    public static boolean inRange(int n, int min, int max) {
+        return n >= min && n < max;
     }
 }
