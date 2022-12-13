@@ -1,9 +1,8 @@
-package core;
+package engine;
 
 import pieces.King;
 import pieces.Piece;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 

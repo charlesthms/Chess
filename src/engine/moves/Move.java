@@ -1,6 +1,7 @@
-package core;
+package engine.moves;
 
 import gui.Game;
+import pieces.Piece;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -8,26 +9,25 @@ import java.awt.geom.Ellipse2D;
 
 public class Move {
 
-    private int x, y, xp, yp;
+    private Piece piece;
+    private int tx, ty, txp, typ;
     private boolean isLethal;
 
     /**
      * Créer un mouvement
      *
-     * @param x Coordonnée x en cases
-     * @param y Coordonnée y en cases
+     * @param piece Pièce source
+     * @param tx Coordonnée x en cases de la cible
+     * @param ty Coordonnée y en cases de la cible
      * @param isLethal true si le coup engendre la mort d'une autre pièce
      */
-    public Move(int x, int y, boolean isLethal) {
-        this.xp = x;
-        this.yp = y;
-        this.x = xp * Game.TILES_SIZE;
-        this.y = yp * Game.TILES_SIZE;
+    public Move(Piece piece, int tx, int ty, boolean isLethal) {
+        this.piece = piece;
+        this.txp = tx;
+        this.typ = ty;
+        this.tx = txp * Game.TILES_SIZE;
+        this.ty = typ * Game.TILES_SIZE;
         this.isLethal = isLethal;
-    }
-
-    public boolean isEqual(Move m) {
-        return m.getX() == x && m.getY() == y;
     }
 
     public void draw(Graphics g){
@@ -38,12 +38,12 @@ public class Move {
     private void drawTip(Graphics2D g2) {
         g2.setColor(new Color(0, 0, 0, 50));
         int size = (int) (10 * Game.SCALE);
-        g2.fillOval(x + size + Game.OFFSET, y + size + Game.OFFSET, size, size);
+        g2.fillOval(tx + size + Game.OFFSET, ty + size + Game.OFFSET, size, size);
     }
 
     private void drawTake(Graphics2D g2) {
         g2.setColor(new Color(0, 0, 0, 50));
-        Shape t = createRingShape(x + Game.TILES_SIZE / 2f + Game.OFFSET, y + Game.TILES_SIZE / 2f + Game.OFFSET, Game.TILES_SIZE / 2f, 8);
+        Shape t = createRingShape(tx + Game.TILES_SIZE / 2f + Game.OFFSET, ty + Game.TILES_SIZE / 2f + Game.OFFSET, Game.TILES_SIZE / 2f, 8);
         g2.draw(t);
         g2.fill(t);
     }
@@ -64,36 +64,44 @@ public class Move {
         return area;
     }
 
-    public int getX() {
-        return x;
+    public Piece getPiece() {
+        return piece;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    public void setPiece(Piece piece) {
+        this.piece = piece;
     }
 
-    public int getY() {
-        return y;
+    public int getTx() {
+        return tx;
     }
 
-    public void setY(int y) {
-        this.y = y;
+    public void setTx(int tx) {
+        this.tx = tx;
     }
 
-    public int getXp() {
-        return xp;
+    public int getTy() {
+        return ty;
     }
 
-    public void setXp(int xp) {
-        this.xp = xp;
+    public void setTy(int ty) {
+        this.ty = ty;
     }
 
-    public int getYp() {
-        return yp;
+    public int getTxp() {
+        return txp;
     }
 
-    public void setYp(int yp) {
-        this.yp = yp;
+    public void setTxp(int txp) {
+        this.txp = txp;
+    }
+
+    public int getTyp() {
+        return typ;
+    }
+
+    public void setTyp(int typ) {
+        this.typ = typ;
     }
 
     public boolean isLethal() {

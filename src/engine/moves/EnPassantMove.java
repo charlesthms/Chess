@@ -1,4 +1,4 @@
-package core;
+package engine.moves;
 
 import pieces.Piece;
 
@@ -9,12 +9,13 @@ public class EnPassantMove extends Move {
     /**
      * Créer un mouvement
      *
-     * @param x        Coordonnée x en cases
-     * @param y        Coordonnée y en cases
+     * @param piece    Pièce source
+     * @param tx       Coordonnée x en cases de la cible
+     * @param ty       Coordonnée y en cases de la cible
      * @param isLethal true si le coup engendre la mort d'une autre pièce
      */
-    public EnPassantMove(int x, int y, boolean isLethal, Piece target) {
-        super(x, y, isLethal);
+    public EnPassantMove(Piece piece, int tx, int ty, boolean isLethal, Piece target) {
+        super(piece, tx, ty, isLethal);
         this.target = target;
     }
 

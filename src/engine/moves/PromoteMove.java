@@ -1,6 +1,5 @@
-package core;
+package engine.moves;
 
-import gui.Game;
 import pieces.*;
 
 import javax.swing.*;
@@ -9,18 +8,16 @@ import java.awt.*;
 
 public class PromoteMove extends Move {
 
-    private Game game;
-
     /**
      * Créer un mouvement
      *
-     * @param x        Coordonnée x en cases
-     * @param y        Coordonnée y en cases
+     * @param piece    Pièce source
+     * @param tx       Coordonnée x en cases de la cible
+     * @param ty       Coordonnée y en cases de la cible
      * @param isLethal true si le coup engendre la mort d'une autre pièce
      */
-    public PromoteMove(int x, int y, boolean isLethal, Game game) {
-        super(x, y, isLethal);
-        this.game = game;
+    public PromoteMove(Piece piece, int tx, int ty, boolean isLethal) {
+        super(piece, tx, ty, isLethal);
     }
 
     public Piece showPromoteDialog(Piece p) {
@@ -47,17 +44,17 @@ public class PromoteMove extends Move {
                 knightRadioButton
         };
 
-        JOptionPane.showConfirmDialog(game.getGamePanel(), inputs, "Promotion", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE);
+        JOptionPane.showConfirmDialog(p.getBoard().getGp(), inputs, "Promotion", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE);
 
         Piece piece;
         if (rookRadioButton.isSelected()) {
-            piece = new Rook(p.getXp(), p.getYp(), game.getBoardManager(), p.isWhite());
+            piece = new Rook(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
         } else if (bishopRadioButton.isSelected()) {
-            piece = new Bishop(p.getXp(), p.getYp(), game.getBoardManager(), p.isWhite());
+            piece = new Bishop(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
         } else if (knightRadioButton.isSelected()) {
-            piece = new Knight(p.getXp(), p.getYp(), game.getBoardManager(), p.isWhite());
+            piece = new Knight(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
         } else {
-            piece = new Queen(p.getXp(), p.getYp(), game.getBoardManager(), p.isWhite());
+            piece = new Queen(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
         }
 
         return piece;

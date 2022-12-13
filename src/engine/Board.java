@@ -1,5 +1,10 @@
-package core;
+package engine;
 
+import engine.moves.CastlingMove;
+import engine.moves.EnPassantMove;
+import engine.moves.Move;
+import engine.moves.PromoteMove;
+import gui.GamePanel;
 import pieces.*;
 import gui.Game;
 import utils.Helpers;
@@ -7,8 +12,14 @@ import utils.Helpers;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
 public class Board {
+
+    private GamePanel gp;
+
+    public static boolean showThreats = false;
+    public static boolean showTips = true;
 
     public static final int[] DIRECTION_OFFSETS = new int[]{-8, 8, -1, 1, -9, 9, -7, 7};
     public static int[][] distanceToEdge = new int[64][8];
@@ -18,12 +29,10 @@ public class Board {
     private Piece selected = null;
     private Point2D hoverEffect = null;
 
-    private Game game;
-
-    public Board(Game game) {
-        this.game = game;
+    public Board() {
         initPieces();
         precomputeMoveData();
+        printBoard(pieces);
     }
 
     private void precomputeMoveData() {
@@ -91,7 +100,8 @@ public class Board {
         new Pawn(7, 6, this);
     }
 
-    public void draw(Graphics g) {
+    public void draw(Graphics g, GamePanel gp) {
+        this.gp = gp;
         g.setColor(new Color(39, 39, 39));
         g.fillRect(0, 0, Game.WIDTH, Game.HEIGHT);
 
@@ -113,11 +123,13 @@ public class Board {
         if (selected != null) {
             drawAccentEffect(g);
             drawHoverEffect(g);
-            drawThreats(g);
 
-            selected.getLegalMoves().forEach(move -> {
-                move.draw(g);
-            });
+            if (showThreats) drawThreats(g);
+            if (showTips) {
+                selected.getLegalMoves().forEach(move -> {
+                    move.draw(g);
+                });
+            }
 
             selected.draw(g);
         }
@@ -205,6 +217,10 @@ public class Board {
                 EnPassantMove epm = piece.isEnPassantMove(alignedX, alignedY);
                 if (epm != null) epm.killTarget();
 
+                if (piece instanceof Pawn p) {
+                    p.setPreviousYp(piece.getYp());
+                }
+
                 piece.updatePosition(alignedX, alignedY);
                 piece.setDidMove(true);
                 lastMovedPiece = piece;
@@ -218,8 +234,54 @@ public class Board {
         }
     }
 
+
+    /**
+     * Génère les mouvements possibles dans les conditions actuelles du jeu
+     *
+     * @return
+     */
+    public ArrayList<Move> generateMoves() {
+        ArrayList<Move> moves = new ArrayList<>();
+
+        for (Piece p : pieces) {
+            if (p != null && p.isWhite()) {
+                moves.addAll(p.getLegalMoves());
+            }
+        }
+
+        return moves;
+    }
+
+    public void doMove(Move m) {
+        Piece p = m.getPiece();
+        pieces[m.getTyp() * 8 + m.getTxp()] = p;
+        pieces[p.getYp() * 8 + p.getXp()] = null;
+    }
+
+    public void undoMove(Move m) {
+        Piece p = m.getPiece();
+        pieces[m.getTyp() * 8 + m.getTxp()] = null;
+        pieces[p.getYp() * 8 + p.getXp()] = p;
+    }
+
     public Piece getPiece(int index) {
         return pieces[index];
+    }
+
+    public void printBoard() {
+        System.out.println("------------------------");
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Piece p = pieces[i * 8 + j];
+                if (p != null) {
+                    System.out.print(" " + p + " ");
+                } else {
+                    System.out.print("   ");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println("------------------------");
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -281,7 +343,7 @@ public class Board {
         this.pieces = pieces;
     }
 
-    public Game getGame() {
-        return game;
+    public GamePanel getGp() {
+        return gp;
     }
 }

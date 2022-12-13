@@ -1,6 +1,6 @@
 package gui;
 
-import core.Board;
+import engine.Board;
 
 import java.awt.*;
 
@@ -8,7 +8,7 @@ public class Game implements Runnable {
 
     public static final int DEFAULT_TILE_SIZE = 32;
     public static final int TILES = 8;
-    public static final float SCALE = 3f;
+    public static final float SCALE = 2.8f;
     public static final int TILES_SIZE = (int) (DEFAULT_TILE_SIZE * SCALE);
     public static final int WIDTH = TILES_SIZE * TILES + 60;
     public static final int HEIGHT = WIDTH;
@@ -24,13 +24,13 @@ public class Game implements Runnable {
     public Game() {
         initClasses();
         gamePanel = new GamePanel(this);
-        gameWindow = new GameWindow(gamePanel);
+        gameWindow = new GameWindow(gamePanel, this);
         gamePanel.requestFocus();
         startGameLoop();
     }
 
     private void initClasses() {
-        boardManager = new Board(this);
+        boardManager = new Board();
     }
 
     private void startGameLoop() {
@@ -39,7 +39,7 @@ public class Game implements Runnable {
     }
 
     public void render(Graphics g) {
-        boardManager.draw(g);
+        boardManager.draw(g, gamePanel);
     }
 
     public void update() {

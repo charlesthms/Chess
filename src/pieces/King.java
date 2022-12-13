@@ -1,9 +1,9 @@
 package pieces;
 
 import com.google.common.collect.ImmutableList;
-import core.Board;
-import core.CastlingMove;
-import core.Move;
+import engine.Board;
+import engine.moves.CastlingMove;
+import engine.moves.Move;
 import gui.Game;
 import utils.Loader;
 
@@ -73,7 +73,7 @@ public class King extends Piece {
                     }
                 }
 
-                if (toAdd) legalMoves.add(new CastlingMove(xp + 2, yp, false, rightRook));
+                if (toAdd) legalMoves.add(new CastlingMove(this, xp + 2, yp, false, rightRook));
             }
             //Left rook
             Piece leftRook = board.getPieces()[isWhite ? 56 : 0];
@@ -84,7 +84,7 @@ public class King extends Piece {
                     // si les cases sont vides et ne sont pas attaquées
                     if (board.getPieces()[yp * 8 + i] != null || threatMap[yp * 8 + i]) toAdd = false;
                 }
-                if (toAdd) legalMoves.add(new CastlingMove(xp - 2, yp, false, leftRook));
+                if (toAdd) legalMoves.add(new CastlingMove(this, xp - 2, yp, false, leftRook));
             }
         }
     }
@@ -102,9 +102,14 @@ public class King extends Piece {
     @Override
     public boolean isLegalMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m.getX() == x && m.getY() == y) return true;
+            if (m.getTx() == x && m.getTy() == y) return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return isWhite ? "♔" : "♚";
     }
 
     @Override
@@ -119,4 +124,7 @@ public class King extends Piece {
         else
             image = Loader.getImage(Loader.B_KING);
     }
+
+
+
 }

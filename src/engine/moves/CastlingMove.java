@@ -1,4 +1,4 @@
-package core;
+package engine.moves;
 
 import gui.Game;
 import pieces.Piece;
@@ -8,17 +8,18 @@ public class CastlingMove extends Move {
     private Piece rook;
 
     /**
-     * Créer un mouvement de castle
+     * Créer un mouvement
      *
-     * @param x        Coordonnée x en cases
-     * @param y        Coordonnée y en cases
+     * @param piece    Pièce source
+     * @param tx       Coordonnée x en cases de la cible
+     * @param ty       Coordonnée y en cases de la cible
      * @param isLethal true si le coup engendre la mort d'une autre pièce
-     * @param rook     La tour du roque
      */
-    public CastlingMove(int x, int y, boolean isLethal, Piece rook) {
-        super(x, y, isLethal);
+    public CastlingMove(Piece piece, int tx, int ty, boolean isLethal, Piece rook) {
+        super(piece, tx, ty, isLethal);
         this.rook = rook;
     }
+
 
     public void moveRook() {
         if (rook.getXp() > 4) {

@@ -1,6 +1,10 @@
 package pieces;
 
-import core.*;
+import engine.*;
+import engine.moves.CastlingMove;
+import engine.moves.EnPassantMove;
+import engine.moves.Move;
+import engine.moves.PromoteMove;
 import gui.Game;
 
 import java.awt.*;
@@ -65,16 +69,16 @@ public abstract class Piece {
 
     protected abstract void loadImage();
 
-    protected Piece[] doMove(Piece[] pieces, Move m) {
-        savedPiece = pieces[m.getYp() * 8 + m.getXp()];
+    public Piece[] doMove(Piece[] pieces, Move m) {
+        savedPiece = pieces[m.getTyp() * 8 + m.getTxp()];
         pieces[index] = null;
-        index = m.getYp() * 8 + m.getXp();
+        index = m.getTyp() * 8 + m.getTxp();
         pieces[index] = this;
 
         return pieces;
     }
 
-    protected void undoMove(Piece[] pieces, int i) {
+    public void undoMove(Piece[] pieces, int i) {
         pieces[index] = savedPiece;
         index = i;
         pieces[index] = this;
@@ -158,37 +162,33 @@ public abstract class Piece {
 
     public CastlingMove isCastlingMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m instanceof CastlingMove && m.getX() == x && m.getY() == y) return (CastlingMove) m;
+            if (m instanceof CastlingMove && m.getTx() == x && m.getTy() == y) return (CastlingMove) m;
         }
         return null;
     }
 
     public PromoteMove isPromoteMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m instanceof PromoteMove && m.getX() == x && m.getY() == y) return (PromoteMove) m;
+            if (m instanceof PromoteMove && m.getTx() == x && m.getTy() == y) return (PromoteMove) m;
         }
         return null;
     }
 
     public EnPassantMove isEnPassantMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m instanceof EnPassantMove && m.getX() == x && m.getY() == y) return (EnPassantMove) m;
+            if (m instanceof EnPassantMove && m.getTx() == x && m.getTy() == y) return (EnPassantMove) m;
         }
         return null;
     }
 
     public boolean isLegalMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m.getX() == x && m.getY() == y) return true;
+            if (m.getTx() == x && m.getTy() == y) return true;
         }
         return false;
     }
 
-    public String toString() {
-        String col = Character.toString(97 + xp);
-        int row = 8 - yp;
-        return col+row;
-    }
+    public abstract String toString();
 
     public int getX() {
         return x;

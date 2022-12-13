@@ -1,13 +1,12 @@
 package pieces;
 
 import com.google.common.collect.ImmutableList;
-import core.Board;
-import core.EnPassantMove;
-import core.Move;
+import engine.Board;
+import engine.moves.EnPassantMove;
+import engine.moves.Move;
 import gui.Game;
 import utils.Loader;
 
-import javax.xml.stream.events.StartDocument;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +15,7 @@ import static utils.Helpers.generateMoves;
 
 public class Pawn extends Piece {
 
+    private int previousYp;
     private int lastMoveIndex;
 
     /**
@@ -37,13 +37,13 @@ public class Pawn extends Piece {
 
         if (yp == 4 || yp == 3) {
             Piece leftTarget = board.getPiece(index - 1);
-            if (leftTarget instanceof Pawn p && Board.lastMovedPiece == leftTarget && p.getLastMoveIndex() == index - 1) {
-                pseudoLegalMoves.add(new EnPassantMove(xp - 1, yp + vect, true, board.getPiece(index - 1)));
+            if (leftTarget instanceof Pawn p && (p.getPreviousYp() == 1 || p.getPreviousYp() == 6) && Board.lastMovedPiece == leftTarget && p.getLastMoveIndex() == index - 1) {
+                pseudoLegalMoves.add(new EnPassantMove(this, xp - 1, yp + vect, true, board.getPiece(index - 1)));
             }
 
             Piece rightTarget = board.getPiece(index + 1);
-            if (rightTarget instanceof Pawn p && Board.lastMovedPiece == rightTarget && p.getLastMoveIndex() == index + 1) {
-                pseudoLegalMoves.add(new EnPassantMove(xp + 1, yp + vect, true, board.getPiece(index + 1)));
+            if (rightTarget instanceof Pawn p && (p.getPreviousYp() == 1 || p.getPreviousYp() == 6) && Board.lastMovedPiece == rightTarget && p.getLastMoveIndex() == index + 1) {
+                pseudoLegalMoves.add(new EnPassantMove(this, xp + 1, yp + vect, true, board.getPiece(index + 1)));
             }
             pseudoLegalMoves = simulateEnPassant(pseudoLegalMoves);
         }
@@ -72,5 +72,18 @@ public class Pawn extends Piece {
 
     public int getLastMoveIndex() {
         return lastMoveIndex;
+    }
+
+    public int getPreviousYp() {
+        return previousYp;
+    }
+
+    public void setPreviousYp(int previousYp) {
+        this.previousYp = previousYp;
+    }
+
+    @Override
+    public String toString() {
+        return isWhite ? "♙" : "♟︎";
     }
 }

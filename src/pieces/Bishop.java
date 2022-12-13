@@ -1,8 +1,8 @@
 package pieces;
 
 import com.google.common.collect.ImmutableList;
-import core.Board;
-import core.Move;
+import engine.Board;
+import engine.moves.Move;
 import gui.Game;
 import utils.Loader;
 
@@ -49,5 +49,10 @@ public class Bishop extends Piece {
             image = Loader.getImage(Loader.W_BISHOP);
         else
             image = Loader.getImage(Loader.B_BISHOP);
+    }
+
+    @Override
+    public String toString() {
+        return isWhite ? "♗" : "♝";
     }
 }

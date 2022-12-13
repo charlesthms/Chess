@@ -1,8 +1,8 @@
 package pieces;
 
 import com.google.common.collect.ImmutableList;
-import core.Board;
-import core.Move;
+import engine.Board;
+import engine.moves.Move;
 import gui.Game;
 import utils.Loader;
 
@@ -48,5 +48,10 @@ public class Rook extends Piece {
         ArrayList<Move> legalMoves = new ArrayList<>(simulateMoves(pseudoLegalMoves));
 
         return ImmutableList.copyOf(legalMoves);
+    }
+
+    @Override
+    public String toString() {
+        return isWhite ? "♖" : "♜";
     }
 }

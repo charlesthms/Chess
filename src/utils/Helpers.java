@@ -1,8 +1,8 @@
 package utils;
 
-import core.Board;
-import core.Move;
-import core.PromoteMove;
+import engine.Board;
+import engine.moves.Move;
+import engine.moves.PromoteMove;
 import pieces.*;
 
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ public class Helpers {
     private static Collection<Move> generateKnightMoves(Piece p) {
         ArrayList<Move> moves = new ArrayList<>();
 
-        for (int i = 0; i < knightMoves.length; i++) {
-            int targetIndex = p.getIndex() + knightMoves[i];
+        for (int knightMove : knightMoves) {
+            int targetIndex = p.getIndex() + knightMove;
 
             int x = targetIndex % 8;
             int y = targetIndex / 8;
@@ -46,10 +46,10 @@ public class Helpers {
 
                 if (target != null) {
                     if (target.isWhite() == !p.isWhite()) {
-                        moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                        moves.add(new Move(p, targetIndex % 8, targetIndex / 8, true));
                     }
                 } else {
-                    moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
+                    moves.add(new Move(p,targetIndex % 8, targetIndex / 8, false));
                 }
             }
         }
@@ -72,10 +72,10 @@ public class Helpers {
                 Piece target = p.getBoard().getPiece(targetIndex);
                 if (target != null) {
                     if (target.isWhite() == !p.isWhite()) {
-                        moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                        moves.add(new Move(p,targetIndex % 8, targetIndex / 8, true));
                     }
                 } else {
-                    moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
+                    moves.add(new Move(p,targetIndex % 8, targetIndex / 8, false));
                 }
             }
         }
@@ -97,10 +97,10 @@ public class Helpers {
 
                 if (target != null) {
                     if (target.isWhite() == p.isWhite()) break;
-                    moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                    moves.add(new Move(p,targetIndex % 8, targetIndex / 8, true));
                     break;
                 } else {
-                    moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
+                    moves.add(new Move(p,targetIndex % 8, targetIndex / 8, false));
                 }
             }
         }
@@ -124,13 +124,19 @@ public class Helpers {
         for (int i = 0; i < 2; i++) {
             // Check si une case existe en diagonale du pion
             int targetIndex = p.getIndex() + pawnAttacks[colorIndex][i];
-            Piece target = p.getBoard().getPiece(targetIndex);
+            Piece target = null;
+            if (targetIndex >= 0 && targetIndex < 64)
+                target = p.getBoard().getPiece(targetIndex);
 
-            if (target != null && target.isWhite() == !p.isWhite()) {
+            int x = targetIndex % 8;
+            int y = targetIndex / 8;
+            int maxDist = Math.max(Math.abs(p.getXp() - x), Math.abs(p.getYp() - y));
+
+            if (target != null && maxDist == 1 && target.isWhite() == !p.isWhite()) {
                 if (inRange(targetIndex, 0, 8) || inRange(targetIndex, 56, 64)) {
-                    moves.add(new PromoteMove(targetIndex % 8, targetIndex / 8, true, p.getBoard().getGame()));
+                    moves.add(new PromoteMove(p,targetIndex % 8, targetIndex / 8, true));
                 } else {
-                    moves.add(new Move(targetIndex % 8, targetIndex / 8, true));
+                    moves.add(new Move(p,targetIndex % 8, targetIndex / 8, true));
                 }
             }
         }
@@ -145,9 +151,9 @@ public class Helpers {
 
         if (target == null) {
             if (inRange(targetIndex, 0, 8) || inRange(targetIndex, 56, 64)) {
-                moves.add(new PromoteMove(targetIndex % 8, targetIndex / 8, false, p.getBoard().getGame()));
+                moves.add(new PromoteMove(p,targetIndex % 8, targetIndex / 8, false));
             } else {
-                moves.add(new Move(targetIndex % 8, targetIndex / 8, false));
+                moves.add(new Move(p,targetIndex % 8, targetIndex / 8, false));
             }
         }
     }
@@ -185,9 +191,9 @@ public class Helpers {
                 ArrayList<Move> opponentMoves = (ArrayList<Move>) generateMoves(opponent);
                 for (Move m : opponentMoves) {
                     if (opponent instanceof Pawn) {
-                        if (m.isLethal()) map[m.getYp() * 8 + m.getXp()] = true;
+                        if (m.isLethal()) map[m.getTyp() * 8 + m.getTxp()] = true;
                     } else {
-                        map[m.getYp() * 8 + m.getXp()] = true;
+                        map[m.getTyp() * 8 + m.getTxp()] = true;
                     }
                 }
             }
