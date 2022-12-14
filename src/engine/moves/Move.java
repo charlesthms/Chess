@@ -30,6 +30,12 @@ public class Move {
         this.isLethal = isLethal;
     }
 
+    public String toString() {
+        char c1 = (char) (97 + piece.getXp());
+        char c2 = (char) (97 + txp);
+        return (c1 + "" + (8 - piece.getYp())) + (c2 + "" + (8 - typ));
+    }
+
     public void draw(Graphics g){
         if (isLethal) drawTake((Graphics2D) g);
         else drawTip((Graphics2D) g);

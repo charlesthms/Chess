@@ -5,6 +5,7 @@ import engine.moves.CastlingMove;
 import engine.moves.EnPassantMove;
 import engine.moves.Move;
 import engine.moves.PromoteMove;
+import engine.players.Player;
 import gui.Game;
 
 import java.awt.*;
@@ -26,6 +27,7 @@ public abstract class Piece {
     protected Player player;
 
     private Piece savedPiece;
+
 
     /**
      * Classe héritée par toutes les pièces
@@ -49,23 +51,48 @@ public abstract class Piece {
         loadImage();
     }
 
-    public Piece(int xp, int yp, Board board, boolean isWhite) {
+
+    /**
+     * Instancie une pièce en forcant les paramètres de couleur et de mouvement
+     *
+     * @param xp Position x en cases
+     * @param yp Position y en cases
+     * @param board Instance du plateau
+     * @param isWhite Définit la couleur
+     * @param didMove Définit si la pièce a déjà bougée
+     */
+    public Piece(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
         this.xp = xp;
         this.yp = yp;
         this.x = xp * Game.TILES_SIZE;
         this.y = yp * Game.TILES_SIZE;
         this.index = yp * 8 + xp;
         this.board = board;
-
-        this.didMove = false;
+        this.didMove = didMove;
+        this.isWhite = isWhite;
 
         board.getPieces()[index] = this;
-        this.isWhite = isWhite;
         loadImage();
     }
 
+    public Piece(Piece piece) {
+        this.index = piece.index;
+        this.xp = piece.xp;
+        this.yp = piece.yp;
+        this.x = piece.x;
+        this.y = piece.y;
+        this.isWhite = piece.isWhite;
+        this.didMove = piece.didMove;
+        this.image = piece.image;
+        this.board = piece.board;
+        this.player = piece.player;
+    }
+
     public abstract Collection<Move> getLegalMoves();
+    
     public abstract void draw(Graphics g);
+    
+    public abstract String toString();
 
     protected abstract void loadImage();
 
@@ -86,8 +113,8 @@ public abstract class Piece {
 
     protected Collection<Move> simulateMoves(ArrayList<Move> pseudoLegalMoves) {
         ArrayList<Move> moves = new ArrayList<>();
-        int initial_index = index;
         Piece[] pieces_backup = board.getPieces().clone();
+        int initial_index = index;
 
         for (Move m : pseudoLegalMoves) {
             Piece[] pieces;
@@ -106,8 +133,8 @@ public abstract class Piece {
 
     protected ArrayList<Move> simulateEnPassant(ArrayList<Move> pseudoLegalMoves) {
         ArrayList<Move> moves = new ArrayList<>(pseudoLegalMoves);
-        int initial_index = index;
         Piece[] pieces_backup = board.getPieces().clone();
+        int initial_index = index;
 
         for (Move m : pseudoLegalMoves) {
             if (m instanceof EnPassantMove epm){
@@ -149,6 +176,14 @@ public abstract class Piece {
         board.getPieces()[index] = this;
     }
 
+    public void updatePos(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.xp = x / Game.TILES_SIZE;
+        this.yp = y / Game.TILES_SIZE;
+        index = yp * 8 + xp;
+    }
+
     /**
      * Mise à jour de la position d'affichage uniquement
      *
@@ -187,9 +222,7 @@ public abstract class Piece {
         }
         return false;
     }
-
-    public abstract String toString();
-
+    
     public int getX() {
         return x;
     }
@@ -202,7 +235,6 @@ public abstract class Piece {
     public int getYp() {
         return yp;
     }
-
     public void setX(int x) {
         this.x = x;
     }

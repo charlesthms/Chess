@@ -25,10 +25,13 @@ public class Bishop extends Piece {
         super(xp, yp, board);
     }
 
-    public Bishop(int xp, int yp, Board board, boolean isWhite) {
-        super(xp, yp, board, isWhite);
+    public Bishop(Piece p) {
+        super(p);
     }
 
+    public Bishop(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
+    }
 
     @Override
     public Collection<Move> getLegalMoves() {

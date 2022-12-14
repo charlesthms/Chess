@@ -29,8 +29,17 @@ public class Pawn extends Piece {
         super(xp, yp, board);
     }
 
+    public Pawn(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
+    }
+
+    public Pawn(Piece p) {
+        super(p);
+    }
+
     @Override
     public Collection<Move> getLegalMoves() {
+
         ArrayList<Move> pseudoLegalMoves = new ArrayList<>(generateMoves(this));
         // En passant
         int vect = isWhite ? -1 : 1;

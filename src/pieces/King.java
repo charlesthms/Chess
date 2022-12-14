@@ -28,13 +28,21 @@ public class King extends Piece {
         super(xp, yp, board);
     }
 
+    public King(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
+    }
+
+    public King(Piece k) {
+        super(k);
+    }
+
     @Override
     public Collection<Move> getLegalMoves() {
         ArrayList<Move> pseudoLegalMoves = new ArrayList<>(generateMoves(this));
         ArrayList<Move> legalMoves = new ArrayList<>();
 
-        int initial_index = index;
         Piece[] pieces_backup = board.getPieces().clone();
+        int initial_index = index;
 
         for (Move m : pseudoLegalMoves) {
             Piece[] pieces;
@@ -124,7 +132,5 @@ public class King extends Piece {
         else
             image = Loader.getImage(Loader.B_KING);
     }
-
-
 
 }

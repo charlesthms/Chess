@@ -19,9 +19,12 @@ public class Rook extends Piece {
         didMove = false;
     }
 
-    public Rook(int x, int y, Board board, boolean isWhite) {
-        super(x, y, board, isWhite);
-        didMove = false;
+    public Rook(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
+    }
+
+    public Rook(Piece p) {
+        super(p);
     }
 
     @Override

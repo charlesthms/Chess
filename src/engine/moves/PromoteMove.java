@@ -48,13 +48,13 @@ public class PromoteMove extends Move {
 
         Piece piece;
         if (rookRadioButton.isSelected()) {
-            piece = new Rook(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
+            piece = new Rook(p.getXp(), p.getYp(), p.getBoard(), p.isWhite(), false);
         } else if (bishopRadioButton.isSelected()) {
-            piece = new Bishop(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
+            piece = new Bishop(p.getXp(), p.getYp(), p.getBoard(), p.isWhite(), false);
         } else if (knightRadioButton.isSelected()) {
-            piece = new Knight(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
+            piece = new Knight(p.getXp(), p.getYp(), p.getBoard(), p.isWhite(), false);
         } else {
-            piece = new Queen(p.getXp(), p.getYp(), p.getBoard(), p.isWhite());
+            piece = new Queen(p.getXp(), p.getYp(), p.getBoard(), p.isWhite(), false);
         }
 
         return piece;

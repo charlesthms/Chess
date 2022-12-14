@@ -25,8 +25,12 @@ public class Queen extends Piece {
         super(xp, yp, board);
     }
 
-    public Queen(int xp, int yp, Board board, boolean isWhite) {
-        super(xp, yp, board, isWhite);
+    public Queen(Piece p) {
+        super(p);
+    }
+
+    public Queen(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
     }
 
     @Override

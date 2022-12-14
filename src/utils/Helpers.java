@@ -15,10 +15,7 @@ public class Helpers {
     private static final int[][] pawnAttacks = { {-9, -7}, {7, 9} };
 
     private static Piece findKing(Piece p) {
-        for (Piece candidat : p.getBoard().getPieces()) {
-            if (candidat instanceof King && candidat.isWhite() == p.isWhite()) return candidat;
-        }
-        return null;
+        return p.isWhite() ? p.getBoard().getWhitePlayer().getKing() : p.getBoard().getBlackPlayer().getKing();
     }
 
     public static boolean isKingChecked(Piece p, boolean isKing) {
@@ -116,7 +113,7 @@ public class Helpers {
 
         generatePathMoves(moves, p, 1);
 
-        if (p.getYp() == startRow) {
+        if (p.getYp() == startRow && p.getBoard().getPiece(p.isWhite() ? p.getIndex() - 8 : p.getIndex() + 8) == null) {
             generatePathMoves(moves, p, 2);
         }
 
@@ -172,7 +169,19 @@ public class Helpers {
             moves = new ArrayList<>(generateMultiMoves(p));
         }
 
+        moves = removeKingFromMoves(moves);
+
         return moves;
+    }
+
+    private static ArrayList<Move> removeKingFromMoves(ArrayList<Move> moves) {
+        ArrayList<Move> res = new ArrayList<>(moves);
+        for (Move m : moves) {
+            if (m.getPiece().getBoard().getPiece(m.getTyp() * 8 + m.getTxp()) instanceof King) {
+                m.setLethal(false);
+            }
+        }
+        return res;
     }
 
     /**
@@ -188,13 +197,35 @@ public class Helpers {
 
         for (Piece opponent : pieces) {
             if (opponent != null && opponent.isWhite() == !p.isWhite()) {
+
+                if (opponent instanceof Pawn pawn) {
+                    int colorIndex = pawn.isWhite() ? 0 : 1;
+                    int targetIndex1 = pawn.getIndex() + pawnAttacks[colorIndex][0];
+                    int targetIndex2 = pawn.getIndex() + pawnAttacks[colorIndex][1];
+
+                    int x1 = targetIndex1 % 8;
+                    int y1 = targetIndex1 / 8;
+                    int minDist1 = Math.max(Math.abs(pawn.getXp() - x1), Math.abs(pawn.getYp() - y1));
+
+                    int x2 = targetIndex2 % 8;
+                    int y2 = targetIndex2 / 8;
+                    int minDist2= Math.max(Math.abs(pawn.getXp() - x2), Math.abs(pawn.getYp() - y2));
+
+                    if (minDist1 == 1) {
+                        map[targetIndex1] = true;
+                    }
+
+                    if (minDist2 == 1) {
+                        map[targetIndex2] = true;
+                    }
+                }
+
                 ArrayList<Move> opponentMoves = (ArrayList<Move>) generateMoves(opponent);
                 for (Move m : opponentMoves) {
-                    if (opponent instanceof Pawn) {
-                        if (m.isLethal()) map[m.getTyp() * 8 + m.getTxp()] = true;
-                    } else {
+                    if (opponent instanceof Pawn && !m.isLethal()) {
+
+                    } else
                         map[m.getTyp() * 8 + m.getTxp()] = true;
-                    }
                 }
             }
         }

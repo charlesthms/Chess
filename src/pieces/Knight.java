@@ -25,10 +25,13 @@ public class Knight extends Piece {
         super(xp, yp, board);
     }
 
-    public Knight(int xp, int yp, Board board, boolean isWhite) {
-        super(xp, yp, board, isWhite);
+    public Knight(Piece p) {
+        super(p);
     }
 
+    public Knight(int xp, int yp, Board board, boolean isWhite, boolean didMove) {
+        super(xp, yp, board, isWhite, didMove);
+    }
 
     @Override
     public Collection<Move> getLegalMoves() {

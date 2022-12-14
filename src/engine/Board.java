@@ -4,6 +4,9 @@ import engine.moves.CastlingMove;
 import engine.moves.EnPassantMove;
 import engine.moves.Move;
 import engine.moves.PromoteMove;
+import engine.players.Bot;
+import engine.players.Human;
+import engine.players.Player;
 import gui.GamePanel;
 import pieces.*;
 import gui.Game;
@@ -13,6 +16,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+
+import static engine.parser.Fen.parseFen;
 
 public class Board {
 
@@ -29,10 +34,39 @@ public class Board {
     private Piece selected = null;
     private Point2D hoverEffect = null;
 
+    private Player currentPlayer;
+    private Player whitePlayer;
+    private Player blackPlayer;
+    private int turn = 0; // 0 for white 1 for black
+
     public Board() {
-        initPieces();
+        initPlayers();
         precomputeMoveData();
-        printBoard(pieces);
+    }
+
+    public Board(String fen) {
+        initPlayers();
+        parseFen(fen, this);
+        precomputeMoveData();
+        printBoard();
+
+        System.out.println(whitePlayer.getKing());
+        System.out.println(blackPlayer.getKing());
+    }
+
+    private void initPlayers() {
+        whitePlayer = new Human(this, findKing(true), true);
+        blackPlayer = new Human(this, findKing(false), false);
+
+        currentPlayer = whitePlayer;
+    }
+
+    private King findKing(boolean isWhite)
+    {
+        for (Piece p : pieces) {
+            if (p instanceof King k && k.isWhite() == isWhite) return k;
+        }
+        return null;
     }
 
     private void precomputeMoveData() {
@@ -57,47 +91,6 @@ public class Board {
                 };
             }
         }
-    }
-
-    private void initPieces() {
-        new King(4, 7, this);
-        new King(4, 0, this);
-
-        new Queen(3, 0, this);
-        new Queen(3, 7, this);
-
-        new Knight(1, 0, this);
-        new Knight(6, 0, this);
-        new Knight(1, 7, this);
-        new Knight(6, 7, this);
-
-        new Bishop(2, 0, this);
-        new Bishop(5, 0, this);
-        new Bishop(2, 7, this);
-        new Bishop(5, 7, this);
-
-        new Rook(0, 0, this);
-        new Rook(7, 0, this);
-        new Rook(0, 7, this);
-        new Rook(7, 7, this);
-
-        new Pawn(0, 1, this);
-        new Pawn(1, 1, this);
-        new Pawn(2, 1, this);
-        new Pawn(3, 1, this);
-        new Pawn(4, 1, this);
-        new Pawn(5, 1, this);
-        new Pawn(6, 1, this);
-        new Pawn(7, 1, this);
-
-        new Pawn(0, 6, this);
-        new Pawn(1, 6, this);
-        new Pawn(2, 6, this);
-        new Pawn(3, 6, this);
-        new Pawn(4, 6, this);
-        new Pawn(5, 6, this);
-        new Pawn(6, 6, this);
-        new Pawn(7, 6, this);
     }
 
     public void draw(Graphics g, GamePanel gp) {
@@ -192,6 +185,15 @@ public class Board {
 
     }
 
+    public void updatePlayerTurn() {
+        turn = 1 - turn;
+
+        if (turn == 0) currentPlayer = whitePlayer;
+        else currentPlayer = blackPlayer;
+
+        if (currentPlayer == blackPlayer && blackPlayer instanceof Bot b) b.play();
+    }
+
     /**
      * Aligne la pièce sur l'échiquier
      *
@@ -228,6 +230,7 @@ public class Board {
                 if (piece instanceof Pawn p)
                     p.setLastMoveIndex(piece.getIndex());
 
+                updatePlayerTurn();
             } else {
                 piece.updatePosition(piece.getXp() * Game.TILES_SIZE, piece.getYp() * Game.TILES_SIZE);
             }
@@ -244,7 +247,7 @@ public class Board {
         ArrayList<Move> moves = new ArrayList<>();
 
         for (Piece p : pieces) {
-            if (p != null && p.isWhite()) {
+            if (p != null && currentPlayer.isWhite() == p.isWhite()) {
                 moves.addAll(p.getLegalMoves());
             }
         }
@@ -252,16 +255,32 @@ public class Board {
         return moves;
     }
 
-    public void doMove(Move m) {
-        Piece p = m.getPiece();
-        pieces[m.getTyp() * 8 + m.getTxp()] = p;
+    public void doMove(Move m)
+    {
+        Piece p;
+        Piece mp = m.getPiece();
+
+        if (mp instanceof King) p = new King(mp);
+        else if (mp instanceof Queen) p = new Queen(mp);
+        else if (mp instanceof Bishop) p = new Bishop(mp);
+        else if (mp instanceof Knight) p = new Knight(mp);
+        else if (mp instanceof Rook) p = new Rook(mp);
+        else p = new Pawn(mp);
+
         pieces[p.getYp() * 8 + p.getXp()] = null;
+        pieces[m.getTyp() * 8 + m.getTxp()] = p;
+        p.updatePos(m.getTx(), m.getTy());
+
+        updatePlayerTurn();
     }
 
-    public void undoMove(Move m) {
+    public void undoMove(Move m)
+    {
         Piece p = m.getPiece();
         pieces[m.getTyp() * 8 + m.getTxp()] = null;
         pieces[p.getYp() * 8 + p.getXp()] = p;
+
+        updatePlayerTurn();
     }
 
     public Piece getPiece(int index) {
@@ -269,19 +288,18 @@ public class Board {
     }
 
     public void printBoard() {
-        System.out.println("------------------------");
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 Piece p = pieces[i * 8 + j];
                 if (p != null) {
                     System.out.print(" " + p + " ");
                 } else {
-                    System.out.print("   ");
+                    System.out.print(" . ");
                 }
             }
             System.out.println();
         }
-        System.out.println("------------------------");
+        System.out.println();
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -290,7 +308,7 @@ public class Board {
 
     private void onMousePressed(int x, int y) {
         for (Piece p : pieces) {
-            if (p != null) {
+            if (p != null && currentPlayer.isWhite() == p.isWhite()) {
                 Rectangle hitbox = new Rectangle(p.getX(), p.getY(), Game.TILES_SIZE, Game.TILES_SIZE);
 
                 if (hitbox.contains(x, y)){
@@ -345,5 +363,25 @@ public class Board {
 
     public GamePanel getGp() {
         return gp;
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public Player getWhitePlayer() {
+        return whitePlayer;
+    }
+
+    public Player getBlackPlayer() {
+        return blackPlayer;
+    }
+
+    public void setCurrentPlayer(Player currentPlayer) {
+        this.currentPlayer = currentPlayer;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
     }
 }
