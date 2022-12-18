@@ -4,6 +4,7 @@ import engine.moves.CastlingMove;
 import engine.moves.EnPassantMove;
 import engine.moves.Move;
 import engine.moves.PromoteMove;
+import engine.parser.Fen;
 import engine.players.Bot;
 import engine.players.Human;
 import engine.players.Player;
@@ -11,7 +12,9 @@ import gui.GamePanel;
 import pieces.*;
 import gui.Game;
 import utils.Helpers;
+import utils.Loader;
 
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
@@ -39,6 +42,8 @@ public class Board {
     private Player blackPlayer;
     private int turn = 0; // 0 for white 1 for black
 
+    private Clip moveSound, takeSound, castleSound, lastSound;
+
     public Board() {
         initPlayers();
         precomputeMoveData();
@@ -52,6 +57,12 @@ public class Board {
 
         System.out.println(whitePlayer.getKing());
         System.out.println(blackPlayer.getKing());
+
+        Fen.getFen(this);
+
+        moveSound = Loader.getSound(Loader.MOVE);
+        takeSound = Loader.getSound(Loader.TAKE);
+        castleSound = Loader.getSound(Loader.CASTLE);
     }
 
     private void initPlayers() {
@@ -149,8 +160,6 @@ public class Board {
             g.drawString(String.valueOf(8 - i), Game.WIDTH - 20, i * Game.TILES_SIZE + Game.OFFSET + Game.TILES_SIZE/2 + 5);
 
         }
-
-
     }
 
     private void drawAccentEffect(Graphics g) {
@@ -206,10 +215,28 @@ public class Board {
             int alignedX = x - (x % Game.TILES_SIZE);
             int alignedY = y - (y % Game.TILES_SIZE);
 
-            if (piece.isLegalMove(alignedX, alignedY)) {
+
+            Move move = piece.isLegalMove(alignedX, alignedY);
+
+            Clip soundToPlay;
+
+            if (move != null) {
+
+                if (move.isLethal()) {
+                    soundToPlay = takeSound;
+                    takeSound.stop();
+                } else {
+                    soundToPlay = moveSound;
+                    moveSound.stop();
+                }
+
                 // Castle the rook
                 CastlingMove cm = piece.isCastlingMove(alignedX, alignedY);
-                if (cm != null) cm.moveRook();
+                if (cm != null) {
+                    castleSound.stop();
+                    soundToPlay = castleSound;
+                    cm.moveRook();
+                }
 
                 // Promote
                 PromoteMove pm = piece.isPromoteMove(alignedX, alignedY);
@@ -229,6 +256,10 @@ public class Board {
 
                 if (piece instanceof Pawn p)
                     p.setLastMoveIndex(piece.getIndex());
+
+
+                soundToPlay.setMicrosecondPosition(0);
+                soundToPlay.start();
 
                 updatePlayerTurn();
             } else {
@@ -277,7 +308,7 @@ public class Board {
     public void undoMove(Move m)
     {
         Piece p = m.getPiece();
-        pieces[m.getTyp() * 8 + m.getTxp()] = null;
+        pieces[m.getTyp() * 8 + m.getTxp()] = m.getTarget();
         pieces[p.getYp() * 8 + p.getXp()] = p;
 
         updatePlayerTurn();

@@ -1,8 +1,12 @@
 package gui;
 
 import engine.Board;
+import engine.moves.Move;
+import engine.parser.Fen;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
 
 public class GameWindow {
 
@@ -16,6 +20,7 @@ public class GameWindow {
     private JMenuItem itemSuggestMove;
     private JMenuItem itemThreats;
     private JMenuItem itemAbout;
+    private JMenuItem itemPrintMoves;
 
     public GameWindow(GamePanel gamePanel, Game game) {
         this.game = game;
@@ -27,7 +32,6 @@ public class GameWindow {
         setMenu();
         frame.pack();
         frame.setVisible(true);
-
     }
 
     private void setMenu() {
@@ -47,11 +51,21 @@ public class GameWindow {
         this.itemNew = new JMenuItem("Nouvelle");
         gameMenu.add(itemNew);
         gameMenu.addSeparator();
+        itemNew.addActionListener(l -> {
+            game.setBoardManager(new Board(Fen.DEFAULT_FEN));
+        });
+
         this.itemSave = new JMenuItem("Sauvegarder");
         gameMenu.add(itemSave);
+        itemSave.addActionListener(l -> {
+            saveGameDialog();
+        });
         this.itemLoad = new JMenuItem("Charger");
         gameMenu.add(itemLoad);
         gameMenu.addSeparator();
+        itemLoad.addActionListener(l -> {
+            loadGameDialog();
+        });
 
         this.itemSuggestMove = new JMenuItem("Afficher les coups possibles");
         gameMenu.add(itemSuggestMove);
@@ -75,6 +89,15 @@ public class GameWindow {
             game.getBoardManager().printBoard();
         });
 
+        this.itemPrintMoves = new JMenuItem("Afficher les mouvements possibles");
+        debugMenu.add(itemPrintMoves);
+        itemPrintMoves.addActionListener(actionEvent -> {
+            for (Move m : game.getBoardManager().generateMoves()) {
+                System.out.println(m);
+            }
+        });
+
+
         JMenu helpMenu = new JMenu("Aide");
         menuBar.add(helpMenu);
 
@@ -95,6 +118,61 @@ public class GameWindow {
                         + "― Bobby Fischer",
                 "A propos",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void saveGameDialog() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Sauvegarder la partie");
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("FEN format files", "fen");
+        fileChooser.setFileFilter(filter);
+
+        int userSelection = fileChooser.showSaveDialog(frame);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            if (file == null) {
+                return;
+            }
+            if (!file.getName().toLowerCase().endsWith(".fen")) {
+                file = new File(file.getParentFile(), file.getName() + ".fen");
+            }
+            try(FileWriter fw = new FileWriter(file)) {
+                fw.write(Fen.getFen(game.getBoardManager()));
+                fw.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadGameDialog() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Charger la partie");
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("FEN format files", "fen");
+        fileChooser.setFileFilter(filter);
+
+        int userSelection = fileChooser.showOpenDialog(frame);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            if (file == null) {
+                return;
+            }
+            if (!file.getName().toLowerCase().endsWith(".fen")) {
+                file = new File(file.getParentFile(), file.getName() + ".fen");
+            }
+
+            try (FileReader fr = new FileReader(file)) {
+                StringBuilder fen = new StringBuilder();
+                int i;
+                while((i=fr.read())!=-1)
+                    fen.append((char) i);
+
+                game.setBoardManager(new Board(fen.toString()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void exit() {

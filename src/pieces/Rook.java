@@ -57,4 +57,9 @@ public class Rook extends Piece {
     public String toString() {
         return isWhite ? "♖" : "♜";
     }
+
+    @Override
+    public String toFen() {
+        return isWhite ? "R" : "r";
+    }
 }

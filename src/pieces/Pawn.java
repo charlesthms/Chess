@@ -95,4 +95,9 @@ public class Pawn extends Piece {
     public String toString() {
         return isWhite ? "♙" : "♟︎";
     }
+
+    @Override
+    public String toFen() {
+        return isWhite ? "P" : "p";
+    }
 }

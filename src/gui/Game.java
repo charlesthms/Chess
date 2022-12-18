@@ -1,6 +1,7 @@
 package gui;
 
 import engine.Board;
+import engine.parser.Fen;
 
 import java.awt.*;
 
@@ -30,7 +31,7 @@ public class Game implements Runnable {
     }
 
     private void initClasses() {
-        boardManager = new Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        boardManager = new Board(Fen.DEFAULT_FEN);
     }
 
     private void startGameLoop() {
@@ -80,5 +81,9 @@ public class Game implements Runnable {
 
     public GamePanel getGamePanel() {
         return gamePanel;
+    }
+
+    public void setBoardManager(Board boardManager) {
+        this.boardManager = boardManager;
     }
 }

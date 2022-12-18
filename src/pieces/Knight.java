@@ -35,7 +35,7 @@ public class Knight extends Piece {
 
     @Override
     public Collection<Move> getLegalMoves() {
-        ArrayList pseudoLegalMoves = new ArrayList(generateMoves(this));
+        ArrayList<Move> pseudoLegalMoves = new ArrayList(generateMoves(this));
         ArrayList<Move> legalMoves = new ArrayList<>(simulateMoves(pseudoLegalMoves));
 
         return ImmutableList.copyOf(legalMoves);
@@ -57,5 +57,10 @@ public class Knight extends Piece {
     @Override
     public String toString() {
         return isWhite ? "♘" : "♞";
+    }
+
+    @Override
+    public String toFen() {
+        return isWhite ? "N" : "n";
     }
 }

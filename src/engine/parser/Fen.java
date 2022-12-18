@@ -3,12 +3,97 @@ package engine.parser;
 import engine.Board;
 import pieces.*;
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Fen {
 
+    public static final String DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    public static String getFen(Board board) {
+        StringBuilder fen = new StringBuilder();
+        for (int y = 0; y < 8; y++) {
+
+            int emptyCase = 0;
+            StringBuilder row = new StringBuilder();
+
+            for (int x = 0; x <= 7; x++) {
+                Piece p = board.getPiece(y * 8 + x);
+
+                if (x == 7 && emptyCase > 0 && p == null) {
+                    row.append(emptyCase + 1);
+                    emptyCase = 0;
+                }
+
+                if (p != null) {
+                    if (emptyCase > 0) {
+                        row.append(emptyCase);
+                        emptyCase = 0;
+                    }
+                    row.append(p.toFen());
+                } else {
+                    emptyCase++;
+                }
+            }
+
+            if (y != 7) {
+                row.append("/");
+            } else {
+                row.append(" ");
+            }
+
+            fen.append(row);
+        }
+
+        if (board.getCurrentPlayer().isWhite()){
+            fen.append("w ");
+        } else {
+            fen.append("b ");
+        }
+
+        boolean castle = false;
+        if (!board.getWhitePlayer().getKing().didMove()) {
+            if (board.getPiece(63) instanceof Rook && !board.getPiece(63).didMove()) {
+                fen.append("K");
+                castle = true;
+            }
+
+            if (board.getPiece(56) instanceof Rook && !board.getPiece(56).didMove()) {
+                fen.append("Q");
+                castle = true;
+            }
+
+        }
+
+        if (!board.getBlackPlayer().getKing().didMove()) {
+            if (board.getPiece(7) instanceof Rook && !board.getPiece(7).didMove()) {
+                fen.append("k");
+                castle = true;
+            }
+
+            if (board.getPiece(0) instanceof Rook && !board.getPiece(0).didMove()) {
+                fen.append("q");
+                castle = true;
+            }
+
+        }
+
+        if (!castle) fen.append("- ");
+        else fen.append(" ");
+
+        fen.append("- ");
+        fen.append("0 0 ");
+
+
+        return fen.toString();
+    }
+
+    /**
+     * Initialise le plateau via la notation de FEN
+     *
+     * @param fen String FEN
+     * @param board Instance du plateau
+     */
     public static void parseFen(String fen, Board board)
     {
         String fenPattern = "^((([pnbrqkPNBRQK1-8]{1,8})\\/?){8})\\s+(b|w)\\s+(-|K?Q?k?q)\\s+(-|[a-h][3-6])\\s*((\\d*)\\s*(\\d*))*$";

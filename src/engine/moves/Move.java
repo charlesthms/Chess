@@ -9,7 +9,7 @@ import java.awt.geom.Ellipse2D;
 
 public class Move {
 
-    private Piece piece;
+    private Piece piece, target;
     private int tx, ty, txp, typ;
     private boolean isLethal;
 
@@ -28,6 +28,7 @@ public class Move {
         this.tx = txp * Game.TILES_SIZE;
         this.ty = typ * Game.TILES_SIZE;
         this.isLethal = isLethal;
+        this.target = piece.getBoard().getPiece(ty * 8 + tx);
     }
 
     public String toString() {
@@ -116,5 +117,9 @@ public class Move {
 
     public void setLethal(boolean lethal) {
         isLethal = lethal;
+    }
+
+    public Piece getTarget() {
+        return target;
     }
 }

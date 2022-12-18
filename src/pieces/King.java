@@ -75,9 +75,8 @@ public class King extends Piece {
                 // Si la tour existe, n'as pas bougée et est au même niveau y
                 for (int i = xp + 1; i < xp + 3; i++) {
                     // si les cases sont vides et ne sont pas attaquées
-                    if (board.getPieces()[yp * 8 + i] != null || threatMap[yp * 8 + i]) {
+                    if (yp * 8 + i > 63 || board.getPieces()[yp * 8 + i] != null || threatMap[yp * 8 + i]) {
                         toAdd = false;
-
                     }
                 }
 
@@ -97,27 +96,22 @@ public class King extends Piece {
         }
     }
 
-    /**
-     * Détermine si le roi est en position d'échec
-     *
-     * @return Vrai si le roi est attaqué par une autre pièce
-     */
-    public boolean isInCheck() {
-
-        return false;
-    }
-
     @Override
-    public boolean isLegalMove(int x, int y) {
+    public Move isLegalMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m.getTx() == x && m.getTy() == y) return true;
+            if (m.getTx() == x && m.getTy() == y) return m;
         }
-        return false;
+        return null;
     }
 
     @Override
     public String toString() {
         return isWhite ? "♔" : "♚";
+    }
+
+    @Override
+    public String toFen() {
+        return isWhite ? "K" : "k";
     }
 
     @Override

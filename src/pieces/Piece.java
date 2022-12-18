@@ -94,6 +94,8 @@ public abstract class Piece {
     
     public abstract String toString();
 
+    public abstract String toFen();
+
     protected abstract void loadImage();
 
     public Piece[] doMove(Piece[] pieces, Move m) {
@@ -111,7 +113,7 @@ public abstract class Piece {
         pieces[index] = this;
     }
 
-    protected Collection<Move> simulateMoves(ArrayList<Move> pseudoLegalMoves) {
+    protected ArrayList<Move> simulateMoves(ArrayList<Move> pseudoLegalMoves) {
         ArrayList<Move> moves = new ArrayList<>();
         Piece[] pieces_backup = board.getPieces().clone();
         int initial_index = index;
@@ -216,11 +218,18 @@ public abstract class Piece {
         return null;
     }
 
-    public boolean isLegalMove(int x, int y) {
+    /**
+     * Détermine si un mouvement est légal
+     *
+     * @param x Position x en pixels
+     * @param y Position y en pixels
+     * @return Le mouvement s'il existe, null sinon
+     */
+    public Move isLegalMove(int x, int y) {
         for (Move m : getLegalMoves()) {
-            if (m.getTx() == x && m.getTy() == y) return true;
+            if (m.getTx() == x && m.getTy() == y) return m;
         }
-        return false;
+        return null;
     }
     
     public int getX() {

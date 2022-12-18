@@ -59,4 +59,9 @@ public class Queen extends Piece {
     public String toString() {
         return isWhite ? "♕" : "♛";
     }
+
+    @Override
+    public String toFen() {
+        return isWhite ? "Q" : "q";
+    }
 }

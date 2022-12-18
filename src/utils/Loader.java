@@ -1,6 +1,7 @@
 package utils;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +22,10 @@ public class Loader {
     public static final String W_KNIGHT = "pieces/white/knight.png";
     public static final String W_PAWN = "pieces/white/pawn.png";
 
+    public static final String TAKE = "sounds/take.wav";
+    public static final String MOVE = "sounds/move.wav";
+    public static final String CASTLE = "sounds/castle.wav";
+
     public static BufferedImage getImage(String path) {
         BufferedImage img = null;
 
@@ -31,5 +36,21 @@ public class Loader {
         }
 
         return img;
+    }
+
+    public static Clip getSound(String path) {
+        Clip clip = null;
+
+        System.out.println(path);
+
+        try (AudioInputStream ais = AudioSystem.getAudioInputStream(Loader.class.getResourceAsStream("/" + path))) {
+            clip = AudioSystem.getClip();
+            clip.open(ais);
+        } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e ) {
+            e.printStackTrace();
+        }
+
+
+        return clip;
     }
 }
